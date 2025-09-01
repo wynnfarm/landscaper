@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Landscaper - Professional Landscaping Services{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Hero Section -->
+    <section class="hero" style="background: linear-gradient(135deg, #2c5530, #4a7c59); color: white; padding: 40px 20px; border-radius: 12px; margin-bottom: 24px; text-align: center;">
+        <h2 style="font-size: 28px; margin-bottom: 16px; font-weight: 600;">Transform Your Outdoor Space</h2>
+        <p style="font-size: 18px; margin-bottom: 24px; opacity: 0.9;">Professional landscaping services to create the garden of your dreams</p>
+        <a href="/contact" class="btn btn-primary" style="background: white; color: #2c5530; max-width: 200px; margin: 0 auto;">Get Free Quote</a>
+    </section>
+
+    <!-- Services Overview -->
+    <section class="services-overview mb-3">
+        <h3 class="card-title text-center mb-2">Our Services</h3>
+        <div class="grid grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">🌿 Lawn Care</h4>
+                    <p class="text-muted">Regular maintenance and care for your lawn</p>
+                </div>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 4px 0;">✓ Mowing & Edging</li>
+                    <li style="padding: 4px 0;">✓ Fertilization</li>
+                    <li style="padding: 4px 0;">✓ Weed Control</li>
+                    <li style="padding: 4px 0;">✓ Aeration</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">🌳 Tree Services</h4>
+                    <p class="text-muted">Professional tree care and maintenance</p>
+                </div>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 4px 0;">✓ Pruning & Trimming</li>
+                    <li style="padding: 4px 0;">✓ Tree Removal</li>
+                    <li style="padding: 4px 0;">✓ Stump Grinding</li>
+                    <li style="padding: 4px 0;">✓ Disease Treatment</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">🌺 Garden Design</h4>
+                    <p class="text-muted">Custom landscape design and installation</p>
+                </div>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 4px 0;">✓ Landscape Planning</li>
+                    <li style="padding: 4px 0;">✓ Plant Selection</li>
+                    <li style="padding: 4px 0;">✓ Hardscaping</li>
+                    <li style="padding: 4px 0;">✓ Irrigation Systems</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">🧹 Cleanup</h4>
+                    <p class="text-muted">Seasonal cleanup and maintenance</p>
+                </div>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 4px 0;">✓ Spring Cleanup</li>
+                    <li style="padding: 4px 0;">✓ Fall Leaf Removal</li>
+                    <li style="padding: 4px 0;">✓ Debris Removal</li>
+                    <li style="padding: 4px 0;">✓ Mulching</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions mb-3">
+        <h3 class="card-title text-center mb-2">Quick Actions</h3>
+        <div class="grid grid-2">
+            <button class="btn btn-primary" data-action="call" data-phone="555-0123">
+                📞 Call Now
+            </button>
+            <button class="btn btn-outline" data-action="email" data-email="info@landscaper.com">
+                ✉️ Email Us
+            </button>
+            <button class="btn btn-outline" data-action="location" data-address="123 Garden St, City, State">
+                📍 Find Us
+            </button>
+            <button class="btn btn-secondary" data-action="share">
+                📤 Share
+            </button>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-choose-us">
+        <div class="card">
+            <h3 class="card-title text-center mb-2">Why Choose Landscaper?</h3>
+            <div class="grid grid-2">
+                <div class="text-center">
+                    <div style="font-size: 32px; margin-bottom: 8px;">⭐</div>
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">5-Star Rated</h4>
+                    <p class="text-muted">Over 500 satisfied customers</p>
+                </div>
+                <div class="text-center">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🏆</div>
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">Licensed & Insured</h4>
+                    <p class="text-muted">Fully certified professionals</p>
+                </div>
+                <div class="text-center">
+                    <div style="font-size: 32px; margin-bottom: 8px;">⏰</div>
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">On-Time Service</h4>
+                    <p class="text-muted">Reliable scheduling and delivery</p>
+                </div>
+                <div class="text-center">
+                    <div style="font-size: 32px; margin-bottom: 8px;">💰</div>
+                    <h4 style="color: #2c5530; margin-bottom: 8px;">Fair Pricing</h4>
+                    <p class="text-muted">Competitive rates and free quotes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
