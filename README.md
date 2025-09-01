@@ -10,13 +10,24 @@ A modern, mobile-first web application for landscaping services, built with Flas
 - 🎨 **Modern UI**: Clean, responsive design with touch-friendly interface
 - ⚡ **PWA Ready**: Progressive Web App capabilities for app-like experience
 - 🔄 **Offline Support**: Service worker for offline functionality
+- 🤖 **AI Assistant**: Intelligent AI agent with Context Manager and Persona Manager MCPs
+- 🎭 **Smart Personas**: 5 specialized AI personas for different customer needs
+- 📋 **Context Tracking**: Maintains conversation context and project state
+- 🛠️ **MCP Integration**: Full integration with Model Context Protocol
 
 ## Project Structure
 
 ```
 landscaper/
-├── app.py                 # Main Flask application
+├── app.py                 # Main Flask application with MCP integration
 ├── requirements.txt       # Python dependencies
+├── mcp_config.json       # MCP configuration
+├── mcp_cli.py           # CLI tool for MCP management
+├── mcp_integration/     # MCP integration modules
+│   ├── __init__.py
+│   ├── context_manager_client.py
+│   ├── persona_manager_client.py
+│   └── ai_agent.py
 ├── static/               # Static assets
 │   ├── css/
 │   │   └── mobile.css    # Mobile-first CSS framework
@@ -25,7 +36,13 @@ landscaper/
 │   └── images/           # Images and icons
 ├── templates/            # Jinja2 templates
 │   ├── base.html         # Base template
-│   └── index.html        # Home page
+│   ├── index.html        # Home page
+│   └── chat.html         # AI chat interface
+├── personas/             # AI persona storage
+│   └── landscaper_personas.json
+├── contexts/             # Context storage
+│   ├── landscaper_context_cache.json
+│   └── landscaper_CONTEXT_STATUS.md
 ├── src/                  # Source code (for future expansion)
 └── tests/                # Test files
 ```
@@ -58,9 +75,22 @@ landscaper/
    python app.py
    ```
 
-5. **Access the application**
+5. **Test MCP Integration**
+   ```bash
+   # Test the MCP integration
+   python mcp_cli.py test
+   
+   # Check context status
+   python mcp_cli.py context status
+   
+   # List available AI personas
+   python mcp_cli.py persona list
+   ```
+
+6. **Access the application**
    - Open your mobile browser and navigate to `http://localhost:5000`
    - Or use your computer's browser and resize to mobile view
+   - Try the AI chat at `http://localhost:5000/chat`
 
 ## Mobile Features
 
@@ -82,6 +112,14 @@ landscaper/
 - **Fast Loading**: Optimized CSS and JavaScript for mobile networks
 - **Offline Support**: Basic functionality works without internet connection
 - **PWA Features**: Can be installed as a home screen app
+
+### AI Assistant Features
+
+- **Intelligent Personas**: 5 specialized AI personas for different customer needs
+- **Context Awareness**: Maintains conversation context and project state
+- **Smart Selection**: Automatically selects the best persona for each query
+- **Real-time Chat**: Interactive AI chat interface optimized for mobile
+- **Service Integration**: AI responses integrated with business services and pricing
 
 ## Development
 
@@ -106,6 +144,12 @@ pytest
 
 # Run with coverage
 pytest --cov=src
+
+# Test MCP integration
+python mcp_cli.py test --verbose
+
+# Test AI agent
+python mcp_cli.py agent chat "Hello, what services do you offer?"
 ```
 
 ## Deployment
@@ -133,6 +177,18 @@ docker run -p 5000:5000 landscaper
 - **Mobile Browsers**: iOS Safari, Chrome Mobile, Firefox Mobile
 - **Desktop Browsers**: Chrome, Firefox, Safari, Edge (with mobile view)
 - **PWA Support**: Modern browsers with service worker support
+
+## MCP Integration
+
+This project includes comprehensive integration with the Context Manager and Persona Manager MCPs:
+
+- **Context Manager**: Tracks project goals, completed features, current issues, and conversation history
+- **Persona Manager**: Provides 5 specialized AI personas for different customer interaction types
+- **AI Agent**: Intelligent agent that automatically selects the best persona for each query
+- **CLI Tools**: Command-line interface for managing MCP services
+- **API Endpoints**: RESTful APIs for AI chat, agent status, and context management
+
+For detailed MCP integration documentation, see [MCP_INTEGRATION_GUIDE.md](MCP_INTEGRATION_GUIDE.md).
 
 ## Contributing
 
