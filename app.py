@@ -13,6 +13,9 @@ from datetime import datetime
 # Import MCP integration
 from mcp_integration import LandscaperAIAgent
 
+# Import landscaping materials calculator
+from landscaping_materials import LandscapingMaterials
+
 app = Flask(__name__)
 CORS(app)
 
@@ -34,6 +37,14 @@ try:
 except Exception as e:
     logger.error(f"Failed to initialize AI Agent: {e}")
     ai_agent = None
+
+# Initialize Landscaping Materials Calculator
+try:
+    materials_calculator = LandscapingMaterials()
+    logger.info("Landscaping Materials Calculator initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize Materials Calculator: {e}")
+    materials_calculator = None
 
 @app.route('/')
 def index():
@@ -137,6 +148,11 @@ def gallery():
 def chat():
     """AI Chat page - interactive AI assistant."""
     return render_template('chat.html')
+
+@app.route('/calculator')
+def calculator():
+    """Wall Material Calculator page."""
+    return render_template('calculator.html')
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
@@ -360,6 +376,103 @@ def api_services():
         }
     ]
     return jsonify(services)
+
+@app.route('/api/materials')
+def api_materials():
+    """API endpoint for materials data."""
+    if not materials_calculator:
+        return jsonify({
+            'success': False,
+            'error': 'Materials calculator not available'
+        }), 503
+    
+    try:
+        materials = materials_calculator.get_all_materials()
+        materials_dict = {}
+        
+        for material in materials:
+            # Convert material to dictionary format
+            material_id = material.name.lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '')
+            materials_dict[material_id] = {
+                'name': material.name,
+                'type': material.material_type.value,
+                'dimensions': f"{material.length}\" x {material.width}\" x {material.height}\"",
+                'weight': material.weight,
+                'price': material.price_per_unit,
+                'description': material.description,
+                'use_case': material.use_case,
+                'installation_notes': material.installation_notes
+            }
+        
+        return jsonify(materials_dict)
+    except Exception as e:
+        logger.error(f"Error getting materials: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get materials data'
+        }), 500
+
+@app.route('/api/calculate-materials', methods=['POST'])
+def api_calculate_materials():
+    """API endpoint for calculating wall materials."""
+    if not materials_calculator:
+        return jsonify({
+            'success': False,
+            'error': 'Materials calculator not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['wall_length', 'wall_height', 'material_id']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # Calculate materials
+        result = materials_calculator.calculate_wall_materials(
+            wall_length=float(data['wall_length']),
+            wall_height=float(data['wall_height']),
+            material_id=data['material_id'],
+            include_base=data.get('include_base', True),
+            include_cap=data.get('include_cap', True)
+        )
+        
+        # Log the calculation for AI agent context
+        if ai_agent:
+            calculation_summary = f"Wall calculation: {data['wall_length']}' x {data['wall_height']}' using {data['material_id']}, estimated cost: ${result['total_estimated_cost']}"
+            ai_agent.add_conversation_entry(
+                role="system",
+                content=calculation_summary,
+                metadata={
+                    "calculation_type": "wall_materials",
+                    "wall_length": data['wall_length'],
+                    "wall_height": data['wall_height'],
+                    "material_id": data['material_id'],
+                    "total_cost": result['total_estimated_cost']
+                }
+            )
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+    except Exception as e:
+        logger.error(f"Error calculating materials: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to calculate materials'
+        }), 500
 
 @app.errorhandler(404)
 def not_found(error):

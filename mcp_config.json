@@ -12,7 +12,7 @@
       }
     },
     "persona_manager": {
-      "name": "Persona Manager", 
+      "name": "Persona Manager",
       "description": "Manages AI personas and intelligent persona selection",
       "enabled": true,
       "config": {
@@ -44,7 +44,7 @@
         "description": "Regular maintenance and care for your lawn"
       },
       "tree_services": {
-        "name": "Tree Services", 
+        "name": "Tree Services",
         "base_price": 75,
         "description": "Professional tree care and maintenance"
       },
@@ -68,7 +68,7 @@
     },
     "business_hours": {
       "monday_friday": "7:00 AM - 6:00 PM",
-      "saturday": "8:00 AM - 4:00 PM", 
+      "saturday": "8:00 AM - 4:00 PM",
       "sunday": "Closed",
       "emergency": "24/7"
     }

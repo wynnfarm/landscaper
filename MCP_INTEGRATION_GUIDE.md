@@ -43,6 +43,7 @@ The AI agent automatically selects the most appropriate persona based on the use
 ### Context-Aware Responses
 
 The agent maintains context across conversations and provides:
+
 - Project-specific information
 - Consistent service recommendations
 - Personalized responses based on user needs
@@ -147,6 +148,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -186,26 +188,31 @@ GET /api/agent/personas
 ## 🎭 Available Personas
 
 ### 1. Customer Service Representative
+
 - **Use Case**: General inquiries, scheduling, support
 - **Expertise**: Customer Service, Landscaping Services, Appointment Scheduling
 - **Style**: Warm, professional, and helpful
 
 ### 2. Landscaping Expert
+
 - **Use Case**: Technical questions, plant care, design advice
 - **Expertise**: Landscape Design, Plant Selection, Garden Maintenance
 - **Style**: Knowledgeable, detailed, and educational
 
 ### 3. Sales Specialist
+
 - **Use Case**: Pricing, quotes, service packages
 - **Expertise**: Sales, Project Proposals, Cost Estimation
 - **Style**: Persuasive, consultative, and results-oriented
 
 ### 4. Technical Support
+
 - **Use Case**: Website/app issues, navigation help
 - **Expertise**: Technical Support, Website Navigation, Troubleshooting
 - **Style**: Clear, step-by-step, and patient
 
 ### 5. Emergency Responder
+
 - **Use Case**: Urgent situations, storm damage, safety concerns
 - **Expertise**: Emergency Response, Storm Damage, Safety Assessment
 - **Style**: Urgent, reassuring, and action-oriented
@@ -249,18 +256,21 @@ GET /api/agent/personas
 ## 📊 Monitoring and Analytics
 
 ### Context Tracking
+
 - Project goals and progress
 - Completed features
 - Current issues and resolutions
 - Next steps and planning
 
 ### Persona Analytics
+
 - Usage statistics per persona
 - Confidence scores for selections
 - Performance metrics
 - User interaction patterns
 
 ### Conversation History
+
 - Session tracking
 - Query classification
 - Response effectiveness
@@ -271,25 +281,28 @@ GET /api/agent/personas
 ### Common Issues
 
 1. **AI Agent Not Available**
+
    ```bash
    # Check if MCP integration is working
    python mcp_cli.py test
    ```
 
 2. **Persona Selection Issues**
+
    ```bash
    # Check available personas
    python mcp_cli.py persona list
-   
+
    # Test persona selection
    python mcp_cli.py persona select "test query"
    ```
 
 3. **Context Not Saving**
+
    ```bash
    # Check context status
    python mcp_cli.py context status
-   
+
    # Verify file permissions
    ls -la contexts/
    ```
@@ -297,6 +310,7 @@ GET /api/agent/personas
 ### Debug Mode
 
 Enable debug logging by setting environment variable:
+
 ```bash
 export DEBUG=True
 python app.py
@@ -305,6 +319,7 @@ python app.py
 ## 🔮 Future Enhancements
 
 ### Planned Features
+
 - [ ] Database integration for persistent storage
 - [ ] Advanced analytics dashboard
 - [ ] Custom persona creation via web interface
@@ -313,6 +328,7 @@ python app.py
 - [ ] Integration with external CRM systems
 
 ### Extensibility
+
 - Add new personas for specific use cases
 - Customize response templates
 - Integrate with external APIs

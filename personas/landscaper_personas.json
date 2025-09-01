@@ -25,8 +25,8 @@
     "audience": "customers",
     "output_format": "conversational",
     "created_at": "2025-09-01T08:09:42.567329",
-    "usage_count": 2,
-    "last_used": "2025-09-01T08:10:00.512411"
+    "usage_count": 5,
+    "last_used": "2025-09-01T08:13:52.186144"
   },
   "landscaping_expert": {
     "id": "landscaping_expert",
@@ -147,7 +147,7 @@
     "audience": "customers",
     "output_format": "urgent",
     "created_at": "2025-09-01T08:09:42.567335",
-    "usage_count": 0,
-    "last_used": null
+    "usage_count": 2,
+    "last_used": "2025-09-01T08:14:08.652184"
   }
 }

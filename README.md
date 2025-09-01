@@ -14,6 +14,9 @@ A modern, mobile-first web application for landscaping services, built with Flas
 - 🎭 **Smart Personas**: 5 specialized AI personas for different customer needs
 - 📋 **Context Tracking**: Maintains conversation context and project state
 - 🛠️ **MCP Integration**: Full integration with Model Context Protocol
+- 🧮 **Material Calculator**: Comprehensive wall material calculator with visual representation
+- 💰 **Cost Estimation**: Real-time material cost calculations and project estimates
+- 🏗️ **Visual Wall Builder**: Interactive wall visualization and design tool
 
 ## Project Structure
 
@@ -23,6 +26,8 @@ landscaper/
 ├── requirements.txt       # Python dependencies
 ├── mcp_config.json       # MCP configuration
 ├── mcp_cli.py           # CLI tool for MCP management
+├── landscaping_materials.py # Material calculator and database
+├── test_calculator.py    # Calculator test suite
 ├── mcp_integration/     # MCP integration modules
 │   ├── __init__.py
 │   ├── context_manager_client.py
@@ -37,7 +42,8 @@ landscaper/
 ├── templates/            # Jinja2 templates
 │   ├── base.html         # Base template
 │   ├── index.html        # Home page
-│   └── chat.html         # AI chat interface
+│   ├── chat.html         # AI chat interface
+│   └── calculator.html   # Material calculator interface
 ├── personas/             # AI persona storage
 │   └── landscaper_personas.json
 ├── contexts/             # Context storage
@@ -76,6 +82,7 @@ landscaper/
    ```
 
 5. **Test MCP Integration**
+
    ```bash
    # Test the MCP integration
    python mcp_cli.py test
@@ -85,12 +92,16 @@ landscaper/
    
    # List available AI personas
    python mcp_cli.py persona list
+   
+   # Test the material calculator
+   python test_calculator.py
    ```
 
 6. **Access the application**
    - Open your mobile browser and navigate to `http://localhost:5000`
    - Or use your computer's browser and resize to mobile view
    - Try the AI chat at `http://localhost:5000/chat`
+   - Use the material calculator at `http://localhost:5000/calculator`
 
 ## Mobile Features
 
@@ -120,6 +131,16 @@ landscaper/
 - **Smart Selection**: Automatically selects the best persona for each query
 - **Real-time Chat**: Interactive AI chat interface optimized for mobile
 - **Service Integration**: AI responses integrated with business services and pricing
+
+### Material Calculator Features
+
+- **Comprehensive Database**: 12+ different landscaping materials with specifications
+- **Wall Height Calculation**: Determines exact quantities based on wall dimensions
+- **Cost Estimation**: Real-time pricing for materials and installation
+- **Visual Representation**: Interactive wall diagram showing block layout
+- **Multiple Material Types**: Retaining walls, pavers, stone, concrete, brick, timber, gabion
+- **Base & Cap Materials**: Includes foundation and finishing materials
+- **Installation Notes**: Professional guidance for each material type
 
 ## Development
 
@@ -189,6 +210,27 @@ This project includes comprehensive integration with the Context Manager and Per
 - **API Endpoints**: RESTful APIs for AI chat, agent status, and context management
 
 For detailed MCP integration documentation, see [MCP_INTEGRATION_GUIDE.md](MCP_INTEGRATION_GUIDE.md).
+
+## Material Calculator
+
+The application includes a comprehensive material calculator for landscaping wall construction:
+
+### Overview
+- **Material Database**: 12+ different landscaping materials with specifications
+- **Wall Calculator**: Determines exact quantities based on wall dimensions
+- **Cost Estimation**: Real-time pricing for materials and installation
+- **Visual Builder**: Interactive wall diagram showing block layout
+
+### Supported Materials
+- **Retaining Wall Blocks**: Versa-Lok, Allan Block, Keystone
+- **Pavers**: Concrete pavers in various sizes
+- **Natural Stone**: Fieldstone, limestone blocks
+- **Concrete Blocks**: Standard concrete blocks
+- **Brick**: Standard clay bricks
+- **Landscape Timber**: Pressure-treated timbers
+- **Gabion Baskets**: Wire baskets for stone fill
+
+For detailed material information and usage guide, see [LANDSCAPING_MATERIALS_GUIDE.md](LANDSCAPING_MATERIALS_GUIDE.md).
 
 ## Contributing
 
