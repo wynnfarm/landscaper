@@ -33,23 +33,27 @@ landscaper/
 ## Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd landscaper
    ```
 
 2. **Create virtual environment**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Run the application**
+
    ```bash
    python app.py
    ```
@@ -61,17 +65,20 @@ landscaper/
 ## Mobile Features
 
 ### Touch Gestures
+
 - **Swipe Navigation**: Swipe left/right to navigate between sections
 - **Touch Targets**: All buttons and links are optimized for finger navigation
 - **Responsive Design**: Adapts to different screen sizes and orientations
 
 ### Native Integration
+
 - **Phone Calls**: Tap phone numbers to call directly
 - **Email**: Tap email addresses to open email client
 - **Maps**: Tap addresses to open in maps application
 - **Share**: Share the app using native sharing capabilities
 
 ### Performance
+
 - **Fast Loading**: Optimized CSS and JavaScript for mobile networks
 - **Offline Support**: Basic functionality works without internet connection
 - **PWA Features**: Can be installed as a home screen app
@@ -79,17 +86,20 @@ landscaper/
 ## Development
 
 ### Running in Development Mode
+
 ```bash
 export DEBUG=True
 python app.py
 ```
 
 ### Environment Variables
+
 - `DEBUG`: Set to `True` for development mode
 - `SECRET_KEY`: Flask secret key for sessions
 - `PORT`: Port number (default: 5000)
 
 ### Testing
+
 ```bash
 # Run tests
 pytest
@@ -101,6 +111,7 @@ pytest --cov=src
 ## Deployment
 
 ### Local Production
+
 ```bash
 export DEBUG=False
 export SECRET_KEY=your-secret-key
@@ -108,6 +119,7 @@ python app.py
 ```
 
 ### Docker Deployment
+
 ```bash
 # Build image
 docker build -t landscaper .

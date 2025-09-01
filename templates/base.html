@@ -1,82 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2c5530">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Landscaper">
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#2c5530" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Landscaper" />
+
     <title>{% block title %}Landscaper - Professional Landscaping Services{% endblock %}</title>
-    
+
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
-    
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}" />
+
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}" />
+
     <!-- PWA Manifest -->
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" />
+
     {% block extra_head %}{% endblock %}
-</head>
-<body>
+  </head>
+  <body>
     <!-- Header -->
     <header class="header">
-        <div class="container">
-            <h1>{% block header_title %}🌿 Landscaper{% endblock %}</h1>
-        </div>
+      <div class="container">
+        <h1>{% block header_title %}🌿 Landscaper{% endblock %}</h1>
+      </div>
     </header>
 
     <!-- Navigation -->
     <nav class="nav">
-        <div class="container">
-            <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
-                        🏠 Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/services" class="nav-link {% if request.endpoint == 'services' %}active{% endif %}">
-                        🌱 Services
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/gallery" class="nav-link {% if request.endpoint == 'gallery' %}active{% endif %}">
-                        📸 Gallery
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/contact" class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}">
-                        📞 Contact
-                    </a>
-                </li>
-            </ul>
-        </div>
+      <div class="container">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"> 🏠 Home </a>
+          </li>
+          <li class="nav-item">
+            <a href="/services" class="nav-link {% if request.endpoint == 'services' %}active{% endif %}">
+              🌱 Services
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/gallery" class="nav-link {% if request.endpoint == 'gallery' %}active{% endif %}"> 📸 Gallery </a>
+          </li>
+                     <li class="nav-item">
+             <a href="/contact" class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}"> 📞 Contact </a>
+           </li>
+           <li class="nav-item">
+             <a href="/chat" class="nav-link {% if request.endpoint == 'chat' %}active{% endif %}"> 🤖 AI Chat </a>
+           </li>
+        </ul>
+      </div>
     </nav>
 
     <!-- Main Content -->
     <main class="main">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
+      <div class="container">{% block content %}{% endblock %}</div>
     </main>
 
     <!-- Footer -->
-    <footer class="footer" style="background: #2c5530; color: white; padding: 20px 0; margin-top: 40px;">
-        <div class="container text-center">
-            <p>&copy; 2024 Landscaper. All rights reserved.</p>
-            <p class="text-muted" style="color: #a0a0a0; font-size: 14px; margin-top: 8px;">
-                Professional landscaping services for your home and business
-            </p>
-        </div>
+    <footer class="footer" style="background: #2c5530; color: white; padding: 20px 0; margin-top: 40px">
+      <div class="container text-center">
+        <p>&copy; 2024 Landscaper. All rights reserved.</p>
+        <p class="text-muted" style="color: #a0a0a0; font-size: 14px; margin-top: 8px">
+          Professional landscaping services for your home and business
+        </p>
+      </div>
     </footer>
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block extra_scripts %}{% endblock %}
-</body>
+  </body>
 </html>

@@ -1,0 +1,84 @@
+{
+  "mcp_servers": {
+    "context_manager": {
+      "name": "Context Manager",
+      "description": "Manages project context, goals, and conversation state",
+      "enabled": true,
+      "config": {
+        "project_name": "landscaper",
+        "auto_save": true,
+        "conversation_history_limit": 50,
+        "context_anchors_enabled": true
+      }
+    },
+    "persona_manager": {
+      "name": "Persona Manager", 
+      "description": "Manages AI personas and intelligent persona selection",
+      "enabled": true,
+      "config": {
+        "personas_dir": "./personas",
+        "auto_create_personas": true,
+        "confidence_threshold": 0.3,
+        "usage_tracking": true
+      }
+    }
+  },
+  "ai_agent": {
+    "name": "Landscaper AI Agent",
+    "description": "Intelligent AI agent for landscaping services",
+    "enabled": true,
+    "config": {
+      "default_persona": "customer_service_rep",
+      "fallback_persona": "customer_service_rep",
+      "response_timeout": 30,
+      "max_response_length": 2000,
+      "enable_conversation_history": true,
+      "enable_analytics": true
+    }
+  },
+  "landscaper_specific": {
+    "services": {
+      "lawn_care": {
+        "name": "Lawn Care",
+        "base_price": 50,
+        "description": "Regular maintenance and care for your lawn"
+      },
+      "tree_services": {
+        "name": "Tree Services", 
+        "base_price": 75,
+        "description": "Professional tree care and maintenance"
+      },
+      "garden_design": {
+        "name": "Garden Design",
+        "base_price": 500,
+        "description": "Custom landscape design and installation"
+      },
+      "cleanup": {
+        "name": "Cleanup Services",
+        "base_price": 100,
+        "description": "Seasonal cleanup and maintenance"
+      }
+    },
+    "contact_info": {
+      "phone": "555-0123",
+      "email": "info@landscaper.com",
+      "address": "123 Garden Street, Green City, GC 12345",
+      "emergency_phone": "555-EMERGENCY",
+      "emergency_email": "emergency@landscaper.com"
+    },
+    "business_hours": {
+      "monday_friday": "7:00 AM - 6:00 PM",
+      "saturday": "8:00 AM - 4:00 PM", 
+      "sunday": "Closed",
+      "emergency": "24/7"
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "./logs/landscaper_ai.log",
+    "max_size": "10MB",
+    "backup_count": 5
+  },
+  "version": "1.0.0",
+  "last_updated": "2024-01-01T00:00:00Z"
+}

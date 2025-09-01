@@ -1,11 +1,17 @@
 """
 Landscaper - Mobile-First Web Application
 A Flask-based web application designed specifically for mobile devices.
+Integrated with Context Manager and Persona Manager MCPs for intelligent AI assistance.
 """
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
 import os
+import logging
+from datetime import datetime
+
+# Import MCP integration
+from mcp_integration import LandscaperAIAgent
 
 app = Flask(__name__)
 CORS(app)
@@ -13,6 +19,21 @@ CORS(app)
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['DEBUG'] = os.environ.get('DEBUG', 'True').lower() == 'true'
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Initialize AI Agent with MCP integration
+try:
+    ai_agent = LandscaperAIAgent("landscaper")
+    logger.info("AI Agent initialized successfully with MCP integration")
+except Exception as e:
+    logger.error(f"Failed to initialize AI Agent: {e}")
+    ai_agent = None
 
 @app.route('/')
 def index():
@@ -112,6 +133,11 @@ def gallery():
     }
     return render_template('gallery.html', gallery=gallery_data)
 
+@app.route('/chat')
+def chat():
+    """AI Chat page - interactive AI assistant."""
+    return render_template('chat.html')
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     """Contact page - contact form and business information."""
@@ -164,6 +190,31 @@ def get_quote():
                 'message': f'{field.replace("_", " ").title()} is required'
             }), 400
     
+    # Use AI agent to process the quote request
+    if ai_agent:
+        try:
+            quote_query = f"Customer {data['name']} is requesting a quote for {data['service_type']}. Contact: {data['email']}, {data['phone']}"
+            if data.get('message'):
+                quote_query += f" Additional details: {data['message']}"
+            
+            ai_response = ai_agent.process_user_query(quote_query, {
+                'request_type': 'quote',
+                'customer_name': data['name'],
+                'service_type': data['service_type']
+            })
+            
+            # Add quote request to context manager
+            ai_agent.add_current_issue(
+                f"Quote request from {data['name']} for {data['service_type']}",
+                location="quote_system",
+                root_cause="customer_inquiry"
+            )
+            
+            logger.info(f"Quote request processed by AI agent: {ai_response.get('persona', {}).get('name', 'Unknown')}")
+            
+        except Exception as e:
+            logger.error(f"AI agent error during quote processing: {e}")
+    
     # Here you would typically:
     # 1. Save the quote request to database
     # 2. Send email notification
@@ -174,6 +225,106 @@ def get_quote():
         'message': 'Quote request received! We will contact you within 24 hours with a detailed estimate.',
         'quote_id': 'Q' + str(hash(data['email']))[:8].upper()
     })
+
+@app.route('/api/chat', methods=['POST'])
+def ai_chat():
+    """AI chat endpoint using MCP integration."""
+    if not ai_agent:
+        return jsonify({
+            'success': False,
+            'error': 'AI agent not available'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '').strip()
+        user_context = data.get('context', {})
+        
+        if not user_message:
+            return jsonify({
+                'success': False,
+                'error': 'Message is required'
+            }), 400
+        
+        # Process the user query with AI agent
+        response = ai_agent.process_user_query(user_message, user_context)
+        
+        logger.info(f"AI chat processed: {response.get('persona', {}).get('name', 'Unknown')} persona used")
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"AI chat error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'An error occurred while processing your message'
+        }), 500
+
+@app.route('/api/agent/status')
+def agent_status():
+    """Get AI agent status and statistics."""
+    if not ai_agent:
+        return jsonify({
+            'success': False,
+            'error': 'AI agent not available'
+        }), 503
+    
+    try:
+        status = ai_agent.get_agent_status()
+        return jsonify({
+            'success': True,
+            'status': status
+        })
+    except Exception as e:
+        logger.error(f"Agent status error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get agent status'
+        }), 500
+
+@app.route('/api/agent/personas')
+def list_personas():
+    """List available AI personas."""
+    if not ai_agent:
+        return jsonify({
+            'success': False,
+            'error': 'AI agent not available'
+        }), 503
+    
+    try:
+        personas = ai_agent.persona_manager.list_personas()
+        return jsonify({
+            'success': True,
+            'personas': personas
+        })
+    except Exception as e:
+        logger.error(f"List personas error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to list personas'
+        }), 500
+
+@app.route('/api/context/summary')
+def context_summary():
+    """Get project context summary."""
+    if not ai_agent:
+        return jsonify({
+            'success': False,
+            'error': 'AI agent not available'
+        }), 503
+    
+    try:
+        summary = ai_agent.context_manager.get_context_summary()
+        return jsonify({
+            'success': True,
+            'context': summary
+        })
+    except Exception as e:
+        logger.error(f"Context summary error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get context summary'
+        }), 500
 
 @app.route('/api/services')
 def api_services():
