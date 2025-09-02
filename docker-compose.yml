@@ -1,0 +1,108 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  landscaper-db:
+    image: postgres:15-alpine
+    container_name: landscaper-database
+    environment:
+      POSTGRES_DB: landscaper
+      POSTGRES_USER: landscaper_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-landscaper_password_2024}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/02-seed_data.sql
+    networks:
+      - landscaper-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U landscaper_user -d landscaper"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and session storage
+  landscaper-redis:
+    image: redis:7-alpine
+    container_name: landscaper-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - landscaper-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Flask Web Application
+  landscaper-web:
+    build: .
+    container_name: landscaper-web
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=landscaper-db
+      - DB_PORT=5432
+      - DB_NAME=landscaper
+      - DB_USER=landscaper_user
+      - DB_PASSWORD=${DB_PASSWORD:-landscaper_password_2024}
+      - REDIS_URL=redis://landscaper-redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DEBUG=False
+      - PORT=5000
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - landscaper-network
+    depends_on:
+      landscaper-db:
+        condition: service_healthy
+      landscaper-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # pgAdmin for database management (optional, for development)
+  landscaper-pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: landscaper-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@landscaper.local
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - landscaper-network
+    depends_on:
+      - landscaper-db
+    restart: unless-stopped
+    profiles:
+      - development
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  landscaper-network:
+    driver: bridge
