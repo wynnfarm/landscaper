@@ -180,7 +180,31 @@
         "confidence": 0.4111111111111111,
         "timestamp": "2025-09-01T08:14:08.652770"
       }
+    },
+    {
+      "role": "user",
+      "content": "I want to create a new user",
+      "timestamp": "2025-09-01T09:56:38.994877",
+      "metadata": {
+        "session_id": "20250901_095501",
+        "user_context": {
+          "page": "chat",
+          "timestamp": "2025-09-01T14:56:38.990Z"
+        },
+        "timestamp": "2025-09-01T09:56:38.994316"
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "I'm here to help with any questions you have about our landscaping services. \n\nCould you please provide more details about what you're looking for? I can assist with:\n\u2022 Service information\n\u2022 Scheduling\n\u2022 Pricing\n\u2022 General questions\n\nHow can I make your landscaping experience better today?",
+      "timestamp": "2025-09-01T09:56:38.997753",
+      "metadata": {
+        "session_id": "20250901_095501",
+        "persona_used": "customer_service_rep",
+        "confidence": 0.30000000000000004,
+        "timestamp": "2025-09-01T09:56:38.997574"
+      }
     }
   ],
-  "last_updated": "2025-09-01T08:14:13.634735"
+  "last_updated": "2025-09-01T09:56:38.997758"
 }

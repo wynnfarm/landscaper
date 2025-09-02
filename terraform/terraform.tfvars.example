@@ -1,0 +1,16 @@
+# Terraform Variables File
+# This file will be created automatically by the deployment script
+# You can also create it manually with your domain configuration
+
+# Domain configuration (optional)
+# domain_name = "your-domain.com"
+# certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-certificate-id"
+
+# AWS region (us-east-1 is typically cheapest)
+aws_region = "us-east-1"
+
+# EC2 instance type (t3.micro is cheapest)
+instance_type = "t3.micro"
+
+# Application name
+app_name = "landscaper"

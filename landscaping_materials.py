@@ -9,6 +9,10 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Tuple
 from enum import Enum
 import math
+import logging
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 
 class MaterialType(Enum):
@@ -20,11 +24,16 @@ class MaterialType(Enum):
     BRICK = "brick"
     TIMBER = "timber"
     GABION = "gabion"
+    BLOCK = "block"
+    WOOD = "wood"
+    METAL = "metal"
+    OTHER = "other"
 
 
 @dataclass
 class MaterialSpec:
     """Specifications for a landscaping material."""
+    id: str
     name: str
     material_type: MaterialType
     length: float  # inches
@@ -42,190 +51,147 @@ class LandscapingMaterials:
     """Database of landscaping materials with calculation methods."""
     
     def __init__(self):
-        self.materials = self._initialize_materials()
+        self.materials = {}  # Will be populated on-demand
+        self._materials_loaded = False
     
-    def _initialize_materials(self) -> Dict[str, MaterialSpec]:
-        """Initialize the materials database with common landscaping materials."""
+    def _load_materials_from_database(self):
+        """Load materials from the database and convert to MaterialSpec objects."""
+        try:
+            from flask import current_app
+            from models.material import Material
+            
+            # Check if we're in a Flask app context
+            if current_app:
+                db_materials = Material.query.filter_by(is_active=True).all()
+                logger.info(f"Loading {len(db_materials)} materials from database")
+                
+                for db_material in db_materials:
+                    # Convert database material to MaterialSpec
+                    material_spec = self._convert_db_material_to_spec(db_material)
+                    if material_spec:
+                        self.materials[str(db_material.id)] = material_spec
+                        logger.info(f"Loaded material: {db_material.name} (ID: {db_material.id})")
+                    else:
+                        logger.warning(f"Failed to convert material: {db_material.name} (ID: {db_material.id})")
+                        
+                logger.info(f"Total materials loaded: {len(self.materials)}")
+            else:
+                logger.warning("No Flask app context available, using fallback materials")
+                self.materials = self._initialize_fallback_materials()
+                    
+        except Exception as e:
+            logger.error(f"Error loading materials from database: {e}")
+            # Fallback to hardcoded materials if database fails
+            self.materials = self._initialize_fallback_materials()
+    
+    def _convert_db_material_to_spec(self, db_material) -> MaterialSpec:
+        """Convert a database Material to a MaterialSpec."""
+        try:
+            # Map database material_type to our enum
+            material_type_map = {
+                'concrete': MaterialType.CONCRETE,
+                'stone': MaterialType.STONE,
+                'brick': MaterialType.BRICK,
+                'block': MaterialType.BLOCK,
+                'wood': MaterialType.WOOD,
+                'metal': MaterialType.METAL,
+                'other': MaterialType.OTHER
+            }
+            
+            material_type = material_type_map.get(db_material.material_type, MaterialType.OTHER)
+            
+            # Calculate coverage per unit based on dimensions
+            length = float(db_material.length_inches) if db_material.length_inches else 0
+            width = float(db_material.width_inches) if db_material.width_inches else 0
+            height = float(db_material.height_inches) if db_material.height_inches else 0
+            
+            # For wall materials, coverage is length * height
+            coverage_per_unit = (length * height) / 144.0 if length and height else 0.5
+            
+            return MaterialSpec(
+                id=db_material.id,
+                name=db_material.name,
+                material_type=material_type,
+                length=length,
+                width=width,
+                height=height,
+                weight=db_material.weight_lbs or 0,
+                coverage_per_unit=coverage_per_unit,
+                price_per_unit=db_material.price_per_unit or 0,
+                description=db_material.description or "",
+                use_case=db_material.use_case or "",
+                installation_notes=db_material.installation_notes or ""
+            )
+        except Exception as e:
+            logger.error(f"Error converting material {db_material.id}: {e}")
+            return None
+    
+    def _initialize_fallback_materials(self) -> Dict[str, MaterialSpec]:
+        """Initialize fallback materials if database fails."""
         return {
-            # Retaining Wall Blocks
-            "versa_lok_standard": MaterialSpec(
-                name="Versa-Lok Standard Block",
-                material_type=MaterialType.RETAINING_WALL_BLOCKS,
-                length=12.0,
-                width=6.0,
-                height=4.0,
-                weight=35.0,
-                coverage_per_unit=0.5,  # 0.5 sq ft per block
-                price_per_unit=4.50,
-                description="Interlocking concrete block for retaining walls",
-                use_case="Retaining walls, garden walls, raised beds",
-                installation_notes="Requires gravel base, interlocking design"
-            ),
-            
-            "versa_lok_cap": MaterialSpec(
-                name="Versa-Lok Cap Block",
-                material_type=MaterialType.RETAINING_WALL_BLOCKS,
-                length=12.0,
-                width=6.0,
-                height=2.0,
-                weight=18.0,
-                coverage_per_unit=0.5,
-                price_per_unit=3.25,
-                description="Cap block for finishing retaining walls",
-                use_case="Top course of retaining walls",
-                installation_notes="Used as final layer, provides clean finish"
-            ),
-            
-            "allan_block_standard": MaterialSpec(
-                name="Allan Block Standard",
-                material_type=MaterialType.RETAINING_WALL_BLOCKS,
-                length=18.0,
-                width=6.0,
-                height=6.0,
-                weight=50.0,
-                coverage_per_unit=0.75,
-                price_per_unit=6.25,
-                description="Large interlocking concrete block",
-                use_case="Tall retaining walls, commercial applications",
-                installation_notes="Heavy duty, requires equipment for installation"
-            ),
-            
-            "keystone_standard": MaterialSpec(
-                name="Keystone Standard Block",
-                material_type=MaterialType.RETAINING_WALL_BLOCKS,
-                length=12.0,
-                width=6.0,
-                height=4.0,
-                weight=32.0,
-                coverage_per_unit=0.5,
-                price_per_unit=4.25,
-                description="Versatile retaining wall block",
-                use_case="Residential retaining walls, planters",
-                installation_notes="Easy to install, good for DIY projects"
-            ),
-            
-            # Pavers
-            "concrete_paver_4x8": MaterialSpec(
-                name="Concrete Paver 4x8",
-                material_type=MaterialType.PAVERS,
-                length=8.0,
-                width=4.0,
-                height=2.375,
-                weight=8.0,
-                coverage_per_unit=0.22,
-                price_per_unit=1.25,
-                description="Standard concrete paver",
-                use_case="Patios, walkways, edging",
-                installation_notes="Requires sand base, good for flat surfaces"
-            ),
-            
-            "concrete_paver_6x6": MaterialSpec(
-                name="Concrete Paver 6x6",
-                material_type=MaterialType.PAVERS,
-                length=6.0,
-                width=6.0,
-                height=2.375,
-                weight=9.0,
-                coverage_per_unit=0.25,
-                price_per_unit=1.50,
-                description="Square concrete paver",
-                use_case="Patios, decorative patterns",
-                installation_notes="Versatile for various patterns"
-            ),
-            
-            # Natural Stone
-            "fieldstone_irregular": MaterialSpec(
-                name="Fieldstone (Irregular)",
-                material_type=MaterialType.STONE,
-                length=12.0,  # average
-                width=8.0,    # average
-                height=6.0,   # average
-                weight=45.0,
-                coverage_per_unit=0.67,
-                price_per_unit=8.50,
-                description="Natural irregular stone",
-                use_case="Natural looking walls, garden features",
-                installation_notes="Requires skilled mason, irregular sizing"
-            ),
-            
-            "limestone_block": MaterialSpec(
-                name="Limestone Block",
-                material_type=MaterialType.STONE,
-                length=12.0,
-                width=6.0,
-                height=4.0,
-                weight=40.0,
-                coverage_per_unit=0.5,
-                price_per_unit=12.00,
-                description="Cut limestone blocks",
-                use_case="Premium walls, formal gardens",
-                installation_notes="Professional installation recommended"
-            ),
-            
-            # Concrete
-            "concrete_block_8x8x16": MaterialSpec(
-                name="Concrete Block 8x8x16",
+            # Concrete Block
+            "concrete_block": MaterialSpec(
+                id="concrete_block",
+                name="Concrete Block",
                 material_type=MaterialType.CONCRETE,
                 length=16.0,
                 width=8.0,
                 height=8.0,
                 weight=35.0,
-                coverage_per_unit=0.89,
+                coverage_per_unit=0.89,  # 16" x 8" = 0.89 sq ft
                 price_per_unit=2.50,
-                description="Standard concrete block",
-                use_case="Foundation walls, structural walls",
-                installation_notes="Requires mortar, professional installation"
+                description="Standard concrete block for retaining walls",
+                use_case="Retaining walls, garden walls",
+                installation_notes="Requires mortar between blocks, ensure proper drainage"
+            ),
+            
+            # Natural Stone
+            "natural_stone": MaterialSpec(
+                id="natural_stone",
+                name="Natural Stone",
+                material_type=MaterialType.STONE,
+                length=12.0,
+                width=6.0,
+                height=2.0,
+                weight=15.0,
+                coverage_per_unit=0.5,  # 12" x 2" = 0.5 sq ft
+                price_per_unit=8.75,
+                description="Natural stone for decorative walls",
+                use_case="Decorative walls, facades",
+                installation_notes="Apply with construction adhesive, seal after installation"
             ),
             
             # Brick
-            "standard_brick": MaterialSpec(
-                name="Standard Brick",
+            "brick": MaterialSpec(
+                id="brick",
+                name="Red Clay Brick",
                 material_type=MaterialType.BRICK,
                 length=8.0,
-                width=3.625,
+                width=4.0,
                 height=2.25,
                 weight=4.5,
-                coverage_per_unit=0.2,
-                price_per_unit=0.75,
-                description="Standard clay brick",
-                use_case="Decorative walls, planters",
-                installation_notes="Requires mortar, good for small projects"
-            ),
-            
-            # Timber
-            "landscape_timber_6x6": MaterialSpec(
-                name="Landscape Timber 6x6",
-                material_type=MaterialType.TIMBER,
-                length=96.0,  # 8 feet
-                width=6.0,
-                height=6.0,
-                weight=25.0,
-                coverage_per_unit=4.0,  # 4 feet of wall length
-                price_per_unit=15.00,
-                description="Pressure treated landscape timber",
-                use_case="Garden walls, raised beds",
-                installation_notes="Requires rebar, good for low walls"
-            ),
-            
-            # Gabion
-            "gabion_basket_3x3x6": MaterialSpec(
-                name="Gabion Basket 3x3x6",
-                material_type=MaterialType.GABION,
-                length=72.0,  # 6 feet
-                width=36.0,   # 3 feet
-                height=36.0,  # 3 feet
-                weight=0.0,   # empty basket
-                coverage_per_unit=18.0,  # 18 sq ft face
-                price_per_unit=45.00,
-                description="Wire basket for stone fill",
-                use_case="Large retaining walls, erosion control",
-                installation_notes="Fill with local stone, requires heavy equipment"
+                coverage_per_unit=0.125,  # 8" x 2.25" = 0.125 sq ft
+                price_per_unit=0.85,
+                description="Traditional red clay brick",
+                use_case="Garden walls, walkways",
+                installation_notes="Use mortar joints, consider weather sealing"
             )
         }
     
+    def _ensure_materials_loaded(self):
+        """Ensure materials are loaded from database."""
+        if not self._materials_loaded:
+            self._load_materials_from_database()
+            self._materials_loaded = True
+    
     def get_material(self, material_id: str) -> MaterialSpec:
         """Get a specific material by ID."""
-        return self.materials.get(material_id)
+        self._ensure_materials_loaded()
+        logger.info(f"Looking for material with ID: {material_id}")
+        logger.info(f"Available material IDs: {list(self.materials.keys())}")
+        # Convert material_id to string for comparison
+        material_id_str = str(material_id)
+        return self.materials.get(material_id_str)
     
     def get_materials_by_type(self, material_type: MaterialType) -> List[MaterialSpec]:
         """Get all materials of a specific type."""
@@ -254,70 +220,73 @@ class LandscapingMaterials:
         Returns:
             Dictionary with material calculations
         """
-        material = self.get_material(material_id)
-        if not material:
-            raise ValueError(f"Material {material_id} not found")
+        try:
+            material = self.get_material(material_id)
+            if not material:
+                raise ValueError(f"Material {material_id} not found")
+            
+            # Convert wall dimensions to inches
+            wall_length_inches = wall_length * 12
+            wall_height_inches = wall_height * 12
+            
+            logger.info(f"Starting calculation for wall: {wall_length}' x {wall_height}'")
+            
+            # Calculate materials needed
+            results = {
+                "wall_specifications": {
+                    "length_feet": wall_length,
+                    "height_feet": wall_height,
+                    "length_inches": wall_length_inches,
+                    "height_inches": wall_height_inches
+                },
+                "primary_material": {
+                    "name": material.name,
+                    "type": material.material_type.value,
+                    "dimensions": f"{material.length}\" x {material.width}\" x {material.height}\"",
+                    "weight_per_unit": material.weight,
+                    "price_per_unit": material.price_per_unit
+                },
+                "calculations": {},
+                "materials_needed": {},
+                "cost_breakdown": {},
+                "installation_notes": []
+            }
         
-        # Convert wall dimensions to inches
-        wall_length_inches = wall_length * 12
-        wall_height_inches = wall_height * 12
-        
-        # Calculate materials needed
-        results = {
-            "wall_specifications": {
-                "length_feet": wall_length,
-                "height_feet": wall_height,
-                "length_inches": wall_length_inches,
-                "height_inches": wall_height_inches
-            },
-            "primary_material": {
-                "name": material.name,
-                "type": material.material_type.value,
-                "dimensions": f"{material.length}\" x {material.width}\" x {material.height}\"",
-                "weight_per_unit": material.weight,
-                "price_per_unit": material.price_per_unit
-            },
-            "calculations": {},
-            "materials_needed": {},
-            "cost_breakdown": {},
-            "installation_notes": []
-        }
-        
-        # Calculate primary material quantities
-        if material.material_type == MaterialType.RETAINING_WALL_BLOCKS:
-            self._calculate_retaining_wall_blocks(results, material, wall_length_inches, wall_height_inches)
-        elif material.material_type == MaterialType.PAVERS:
-            self._calculate_paver_wall(results, material, wall_length_inches, wall_height_inches)
-        elif material.material_type == MaterialType.STONE:
-            self._calculate_stone_wall(results, material, wall_length_inches, wall_height_inches)
-        elif material.material_type == MaterialType.CONCRETE:
-            self._calculate_concrete_block_wall(results, material, wall_length_inches, wall_height_inches)
-        elif material.material_type == MaterialType.BRICK:
-            self._calculate_brick_wall(results, material, wall_length_inches, wall_height_inches)
-        elif material.material_type == MaterialType.TIMBER:
-            self._calculate_timber_wall(results, material, wall_length_inches, wall_height_inches)
-        elif material.material_type == MaterialType.GABION:
-            self._calculate_gabion_wall(results, material, wall_length_inches, wall_height_inches)
-        
-        # Add base materials if requested
-        if include_base:
-            self._add_base_materials(results, wall_length, wall_height)
-        
-        # Add cap materials if requested
-        if include_cap and material.material_type == MaterialType.RETAINING_WALL_BLOCKS:
-            self._add_cap_materials(results, wall_length_inches)
-        
-        # Calculate total costs
-        self._calculate_total_costs(results)
-        
-        # Add installation notes
-        results["installation_notes"].extend([
-            material.installation_notes,
-            f"Wall area: {wall_length * wall_height:.1f} square feet",
-            f"Estimated installation time: {self._estimate_installation_time(results)} hours"
-        ])
-        
-        return results
+            # Calculate primary material quantities based on material type
+            if material.material_type in [MaterialType.CONCRETE, MaterialType.BLOCK]:
+                self._calculate_concrete_block_wall(results, material, wall_length_inches, wall_height_inches)
+            elif material.material_type == MaterialType.STONE:
+                self._calculate_stone_wall(results, material, wall_length_inches, wall_height_inches)
+            elif material.material_type == MaterialType.BRICK:
+                self._calculate_brick_wall(results, material, wall_length_inches, wall_height_inches)
+            elif material.material_type == MaterialType.WOOD:
+                self._calculate_timber_wall(results, material, wall_length_inches, wall_height_inches)
+            else:
+                # Default to concrete block calculation for unknown types
+                self._calculate_concrete_block_wall(results, material, wall_length_inches, wall_height_inches)
+            
+            # Add base materials if requested
+            if include_base:
+                self._add_base_materials(results, wall_length, wall_height)
+            
+            # Add cap materials if requested
+            if include_cap and material.material_type in [MaterialType.CONCRETE, MaterialType.BLOCK]:
+                self._add_cap_materials(results, wall_length_inches)
+            
+            # Calculate total costs
+            self._calculate_total_costs(results)
+            
+            # Add installation notes
+            results["installation_notes"].extend([
+                material.installation_notes,
+                f"Wall area: {wall_length * wall_height:.1f} square feet",
+                f"Estimated installation time: {self._estimate_installation_time(results)} hours"
+            ])
+            
+            return results
+        except Exception as e:
+            logger.error(f"Error in calculate_wall_materials: {e}")
+            raise
     
     def _calculate_retaining_wall_blocks(self, results: Dict, material: MaterialSpec, 
                                        wall_length_inches: float, wall_height_inches: float):
@@ -382,11 +351,21 @@ class LandscapingMaterials:
         }
     
     def _calculate_concrete_block_wall(self, results: Dict, material: MaterialSpec,
-                                     wall_length_inches: float, wall_height_inches: float):
+                                       wall_length_inches: float, wall_height_inches: float):
         """Calculate quantities for concrete block walls."""
-        blocks_per_course = math.ceil(wall_length_inches / material.length)
-        courses = math.ceil(wall_height_inches / material.height)
+        # Check for valid dimensions and use defaults if needed
+        length = material.length if material.length else 16.0
+        height = material.height if material.height else 8.0
+        width = material.width if material.width else 8.0
+        
+        logger.info(f"Calculating concrete block wall with dimensions: length={length}, height={height}, width={width}")
+        logger.info(f"Wall dimensions: {wall_length_inches} x {wall_height_inches} inches")
+        
+        blocks_per_course = math.ceil(wall_length_inches / length)
+        courses = math.ceil(wall_height_inches / height)
         total_blocks = blocks_per_course * courses
+        
+        logger.info(f"Concrete block calculation: blocks_per_course={blocks_per_course}, courses={courses}, total_blocks={total_blocks}")
         
         results["calculations"] = {
             "blocks_per_course": blocks_per_course,
@@ -394,11 +373,18 @@ class LandscapingMaterials:
             "total_blocks": total_blocks
         }
         
+        # Calculate materials needed with logging
+        mortar_bags = math.ceil(total_blocks * 0.3)
+        rebar_pieces = math.ceil(wall_length_inches / 48)  # Every 4 feet
+        concrete_footings = round(wall_length_inches * 12 * 8 / 46656, 2)
+        
+        logger.info(f"Materials calculation: mortar_bags={mortar_bags}, rebar_pieces={rebar_pieces}, concrete_footings={concrete_footings}")
+        
         results["materials_needed"] = {
             "concrete_blocks": total_blocks,
-            "mortar_bags": math.ceil(total_blocks * 0.3),
-            "rebar_pieces": math.ceil(wall_length_inches / 48),  # Every 4 feet
-            "concrete_footings_cubic_yards": round(wall_length_inches * 12 * 8 / 46656, 2)
+            "mortar_bags": mortar_bags,
+            "rebar_pieces": rebar_pieces,
+            "concrete_footings_cubic_yards": concrete_footings
         }
     
     def _calculate_brick_wall(self, results: Dict, material: MaterialSpec,
@@ -484,29 +470,62 @@ class LandscapingMaterials:
                 cap_material = material
                 break
         
-        if cap_material:
+        if cap_material and cap_material.length and cap_material.length > 0:
             cap_blocks = math.ceil(wall_length_inches / cap_material.length)
             results["materials_needed"]["cap_blocks"] = cap_blocks
+            if "cost_breakdown" not in results:
+                results["cost_breakdown"] = {}
             results["cost_breakdown"]["cap_blocks"] = cap_blocks * cap_material.price_per_unit
+            logger.info(f"Added cap materials: {cap_blocks} cap blocks")
+        else:
+            logger.info("No suitable cap material found, skipping cap materials")
     
     def _calculate_total_costs(self, results: Dict):
         """Calculate total material costs."""
+        logger.info("Starting total cost calculation")
         total_cost = 0
         cost_breakdown = {}
         
-        material = self.get_material(results["primary_material"]["name"].lower().replace(" ", "_").replace("-", "_"))
-        if material:
-            primary_quantity = results["materials_needed"].get("primary_blocks", 
-                                                           results["materials_needed"].get("pavers", 
-                                                           results["materials_needed"].get("stone_blocks",
-                                                           results["materials_needed"].get("concrete_blocks",
-                                                           results["materials_needed"].get("bricks",
-                                                           results["materials_needed"].get("landscape_timbers",
-                                                           results["materials_needed"].get("gabion_baskets", 0)))))))
+        # Get the primary material from the results
+        primary_material_name = results["primary_material"]["name"]
+        logger.info(f"Primary material: {primary_material_name}")
+        
+        # Find the material in our database
+        primary_material = None
+        for material in self.materials.values():
+            if material.name == primary_material_name:
+                primary_material = material
+                break
+        
+        logger.info(f"Found primary material: {primary_material.name if primary_material else 'None'}")
+        
+        if primary_material:
+            # Get the primary quantity based on material type
+            primary_quantity = 0
+            if primary_material.material_type in [MaterialType.CONCRETE, MaterialType.BLOCK]:
+                primary_quantity = results["materials_needed"].get("concrete_blocks", 0)
+            elif primary_material.material_type == MaterialType.STONE:
+                primary_quantity = results["materials_needed"].get("stone_blocks", 0)
+            elif primary_material.material_type == MaterialType.BRICK:
+                primary_quantity = results["materials_needed"].get("bricks", 0)
+            elif primary_material.material_type == MaterialType.WOOD:
+                primary_quantity = results["materials_needed"].get("landscape_timbers", 0)
+            else:
+                # Default to first material in the list
+                primary_quantity = next(iter(results["materials_needed"].values()), 0)
             
-            primary_cost = primary_quantity * material.price_per_unit
-            cost_breakdown["primary_material"] = primary_cost
+            logger.info(f"Primary quantity: {primary_quantity}")
+            
+            # Check for zero quantity
+            if primary_quantity <= 0:
+                logger.warning(f"Primary quantity is {primary_quantity}, using minimum value of 1")
+                primary_quantity = 1
+            
+            logger.info(f"Calculating primary cost: {primary_quantity} * {primary_material.price_per_unit}")
+            primary_cost = float(primary_quantity * primary_material.price_per_unit)
+            cost_breakdown["primary_material"] = round(primary_cost, 2)
             total_cost += primary_cost
+            logger.info(f"Primary cost: ${primary_cost}")
         
         # Add other material costs (estimates)
         cost_estimates = {
@@ -520,18 +539,28 @@ class LandscapingMaterials:
             "geotextile_square_feet": 2.00
         }
         
+        logger.info("Calculating additional material costs")
         for material_name, quantity in results["materials_needed"].items():
             if material_name in cost_estimates:
                 cost = quantity * cost_estimates[material_name]
                 cost_breakdown[material_name] = cost
                 total_cost += cost
+                logger.info(f"Additional cost for {material_name}: {quantity} * ${cost_estimates[material_name]} = ${cost}")
         
         results["cost_breakdown"] = cost_breakdown
         results["total_estimated_cost"] = round(total_cost, 2)
+        logger.info(f"Total estimated cost: ${total_cost}")
     
     def _estimate_installation_time(self, results: Dict) -> int:
         """Estimate installation time in hours."""
         wall_area = results["wall_specifications"]["length_feet"] * results["wall_specifications"]["height_feet"]
+        
+        logger.info(f"Estimating installation time for wall area: {wall_area} sq ft")
+        
+        # Check for zero wall area
+        if wall_area <= 0:
+            logger.warning(f"Wall area is {wall_area}, using minimum value of 1")
+            wall_area = 1.0
         
         # Base time estimates (hours per 100 sq ft)
         time_per_100_sqft = {
@@ -547,7 +576,10 @@ class LandscapingMaterials:
         material_type = results["primary_material"]["type"]
         base_time = time_per_100_sqft.get(material_type, 10)
         
-        return max(1, round((wall_area / 100) * base_time))
+        estimated_time = max(1, round((wall_area / 100) * base_time))
+        logger.info(f"Estimated installation time: {estimated_time} hours")
+        
+        return estimated_time
 
 
 # Example usage and testing
@@ -571,3 +603,5 @@ if __name__ == "__main__":
     print("\nMaterials Needed:")
     for material, quantity in result['materials_needed'].items():
         print(f"  {material}: {quantity}")
+
+

@@ -466,3 +466,5 @@ How can I assist you today?"""
         context = self.context_manager.get_full_context()
         history = context.get('conversation_history', [])
         return history[-limit:] if history else []
+
+

@@ -148,3 +148,5 @@ if __name__ == "__main__":
         print("\n🎉 All tests passed! Calculator is ready for use.")
     else:
         print("\n⚠️  Some tests failed. Check the output above for details.")
+
+

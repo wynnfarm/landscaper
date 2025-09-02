@@ -81,6 +81,114 @@
       </div>
     </div>
   </section>
+
+  <!-- AI Knowledge Base -->
+  <section class="knowledge-base">
+    <div class="card">
+      <h4 class="card-title">🧠 AI Knowledge Base</h4>
+      <div class="knowledge-grid">
+        <div class="knowledge-item">
+          <div class="knowledge-icon">🌱</div>
+          <div class="knowledge-content">
+            <h5>Plant Care & Selection</h5>
+            <p>Comprehensive database of native plants, care requirements, and seasonal recommendations</p>
+          </div>
+        </div>
+        <div class="knowledge-item">
+          <div class="knowledge-icon">🏗️</div>
+          <div class="knowledge-content">
+            <h5>Construction Techniques</h5>
+            <p>Best practices for retaining walls, drainage systems, and hardscape installation</p>
+          </div>
+        </div>
+        <div class="knowledge-item">
+          <div class="knowledge-icon">💧</div>
+          <div class="knowledge-content">
+            <h5>Irrigation Systems</h5>
+            <p>Design principles, water efficiency, and troubleshooting for irrigation systems</p>
+          </div>
+        </div>
+        <div class="knowledge-item">
+          <div class="knowledge-icon">🧮</div>
+          <div class="knowledge-content">
+            <h5>Material Calculations</h5>
+            <p>Precise calculation algorithms for materials, quantities, and project estimation</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Learning & Training -->
+  <section class="ai-learning">
+    <div class="card">
+      <h4 class="card-title">📚 AI Learning & Training</h4>
+      <div class="learning-content">
+        <div class="training-stats">
+          <h5>Current Training Status</h5>
+          <div class="stat-row">
+            <span>Conversation Training:</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 92%"></div>
+              <span class="progress-text">92%</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span>Technical Knowledge:</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 88%"></div>
+              <span class="progress-text">88%</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span>Customer Service:</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 95%"></div>
+              <span class="progress-text">95%</span>
+            </div>
+          </div>
+        </div>
+        <div class="learning-updates">
+          <h5>Recent Learning Updates</h5>
+          <ul class="update-list">
+            <li>✅ Updated irrigation system troubleshooting protocols</li>
+            <li>✅ Added seasonal plant care recommendations</li>
+            <li>✅ Enhanced material cost estimation algorithms</li>
+            <li>🔄 Training on customer complaint resolution (in progress)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conversation Analytics -->
+  <section class="conversation-analytics">
+    <div class="card">
+      <h4 class="card-title">📊 Conversation Analytics</h4>
+      <div class="analytics-grid">
+        <div class="analytic-card">
+          <h6>Daily Conversations</h6>
+          <p class="metric-number">127</p>
+          <small>+15% from yesterday</small>
+        </div>
+        <div class="analytic-card">
+          <h6>Avg Response Time</h6>
+          <p class="metric-number">1.2s</p>
+          <small>Within target range</small>
+        </div>
+        <div class="analytic-card">
+          <h6>Resolution Rate</h6>
+          <p class="metric-number">94%</p>
+          <small>+2% this week</small>
+        </div>
+        <div class="analytic-card">
+          <h6>Customer Satisfaction</h6>
+          <p class="metric-number">4.7/5</p>
+          <small>Based on 89 ratings</small>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <style>
@@ -201,6 +309,135 @@
     background: #e9ecef;
     border-color: #2c5530;
     color: #2c5530;
+  }
+
+  /* Knowledge Base Styles */
+  .knowledge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .knowledge-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #17a2b8;
+  }
+
+  .knowledge-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+  }
+
+  .knowledge-content h5 {
+    margin: 0 0 0.5rem 0;
+    color: #17a2b8;
+  }
+
+  .knowledge-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+
+  /* AI Learning Styles */
+  .learning-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+  }
+
+  .training-stats h5,
+  .learning-updates h5 {
+    margin: 0 0 1rem 0;
+    color: #495057;
+  }
+
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 20px;
+    background: #e9ecef;
+    border-radius: 10px;
+    position: relative;
+    margin: 0 1rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .update-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .update-list li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  /* Conversation Analytics Styles */
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .analytic-card {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    text-align: center;
+    border-left: 4px solid #6c757d;
+  }
+
+  .analytic-card h6 {
+    margin: 0 0 0.5rem 0;
+    color: #495057;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  .metric-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin: 0.5rem 0;
+  }
+
+  .analytic-card small {
+    color: #6c757d;
+    font-size: 0.75rem;
   }
 
   .ai-status {

@@ -335,3 +335,5 @@ class ContextManagerClient:
         except Exception as e:
             logger.error(f"Failed to mark issue as resolved: {e}")
             return False
+
+

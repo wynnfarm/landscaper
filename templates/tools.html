@@ -1,0 +1,352 @@
+{% extends "base.html" %} {% block title %}Equipment & Tools - Staff Dashboard{% endblock %} {% block content %}
+<div class="main-content">
+  <h2 class="page-title">🔧 Equipment & Tools</h2>
+
+  <!-- Equipment Status -->
+  <section class="mb-3">
+    <h3 class="card-title">Equipment Status</h3>
+    <div class="equipment-list">
+      {% for item in tools.equipment %}
+      <div class="card equipment-card">
+        <div class="equipment-header">
+          <div class="equipment-info">
+            <h4 style="color: #2c5530; margin-bottom: 4px">{{ item.name }}</h4>
+            <p class="text-muted">ID: {{ item.name.split(' - ')[0] }}</p>
+          </div>
+          <div class="equipment-status">
+            <span class="status-badge status-{{ item.status.lower().replace(' ', '-') }}">{{ item.status }}</span>
+          </div>
+        </div>
+        <div class="equipment-details">
+          <p><strong>Location:</strong> {{ item.current_location }}</p>
+          {% if item.assigned_crew_member_name %}
+          <p><strong>Assigned to:</strong> {{ item.assigned_crew_member_name }}</p>
+          {% endif %} {% if item.maintenance_notes %}
+          <p><strong>Issue:</strong> <span style="color: #dc3545">{{ item.maintenance_notes }}</span></p>
+          {% endif %}
+          <p><strong>Last Maintenance:</strong> {{ item.last_maintenance_date }}</p>
+          {% if item.next_maintenance_date %}
+          <p><strong>Next Maintenance:</strong> {{ item.next_maintenance_date }}</p>
+          {% endif %}
+          <p><strong>Brand/Model:</strong> {{ item.brand }} {{ item.model }}</p>
+        </div>
+        <div class="equipment-actions">
+          {% if item.status == 'available' %}
+          <button class="btn btn-primary btn-sm" onclick="checkoutEquipment('{{ item.id }}', '{{ item.name }}')">
+            Check Out
+          </button>
+          {% elif item.status == 'in_use' %}
+          <button class="btn btn-outline btn-sm" onclick="checkinEquipment('{{ item.id }}', '{{ item.name }}')">
+            Check In
+          </button>
+          {% elif item.status == 'maintenance' %}
+          <button class="btn btn-warning btn-sm" onclick="markRepaired('{{ item.id }}', '{{ item.name }}')">
+            Mark Repaired
+          </button>
+          {% endif %}
+          <button class="btn btn-outline btn-sm" onclick="viewHistory('{{ item.id }}')">History</button>
+          <button class="btn btn-outline btn-sm" onclick="scheduleMaintenance('{{ item.id }}', '{{ item.name }}')">
+            Maintenance
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Hand Tools -->
+  <section class="mb-3">
+    <h3 class="card-title">Hand Tools Inventory</h3>
+    <div class="tools-grid">
+      {% for tool in tools.hand_tools %}
+      <div class="card tool-card">
+        <div class="tool-header">
+          <h4 style="color: #2c5530; margin-bottom: 4px">{{ tool.name }}</h4>
+          <span class="count-badge">{{ tool.count }} available</span>
+        </div>
+        <div class="tool-status">
+          <span class="status-badge status-{{ tool.status.lower().replace(' ', '-') }}">{{ tool.status }}</span>
+        </div>
+        <div class="tool-actions">
+          <button class="btn btn-outline btn-sm">Check Out</button>
+          <button class="btn btn-outline btn-sm">Inventory</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <section class="quick-actions">
+    <h3 class="card-title">Quick Actions</h3>
+    <div class="grid grid-2">
+      <button class="btn btn-primary">➕ Add Equipment</button>
+      <button class="btn btn-outline">🔧 Maintenance Schedule</button>
+      <button class="btn btn-outline">📊 Equipment Reports</button>
+      <button class="btn btn-secondary">📋 Check Out/In</button>
+    </div>
+  </section>
+
+  <!-- Equipment Maintenance Schedule -->
+  <section class="maintenance-schedule">
+    <h3 class="card-title">📅 Upcoming Maintenance</h3>
+    <div class="maintenance-list">
+      <div class="maintenance-item">
+        <div class="maintenance-info">
+          <h4>Excavator</h4>
+          <p>Due: Next Tuesday</p>
+          <p>Service: Oil change, hydraulic inspection</p>
+        </div>
+        <button class="btn btn-outline btn-sm">Schedule</button>
+      </div>
+      <div class="maintenance-item">
+        <div class="maintenance-info">
+          <h4>Skid Steer</h4>
+          <p>Due: Next Friday</p>
+          <p>Service: Engine service, track replacement</p>
+        </div>
+        <button class="btn btn-outline btn-sm">Schedule</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Safety Guidelines -->
+  <section class="safety-guidelines">
+    <h3 class="card-title">⚠️ Equipment Safety Guidelines</h3>
+    <div class="safety-grid">
+      <div class="safety-item">
+        <h4>🚜 Heavy Equipment</h4>
+        <ul>
+          <li>Always perform pre-operation inspection</li>
+          <li>Wear appropriate PPE</li>
+          <li>Check hydraulic fluid levels</li>
+          <li>Verify all safety systems</li>
+        </ul>
+      </div>
+      <div class="safety-item">
+        <h4>🔧 Hand Tools</h4>
+        <ul>
+          <li>Inspect for damage before use</li>
+          <li>Clean tools after each use</li>
+          <li>Store in designated locations</li>
+          <li>Report damaged tools immediately</li>
+        </ul>
+      </div>
+      <div class="safety-item">
+        <h4>🔋 Power Tools</h4>
+        <ul>
+          <li>Check battery charge levels</li>
+          <li>Inspect power cords for damage</li>
+          <li>Use GFCI protection when required</li>
+          <li>Keep cutting tools sharp and clean</li>
+        </ul>
+      </div>
+      <div class="safety-item">
+        <h4>🚚 Vehicle Equipment</h4>
+        <ul>
+          <li>Check tire pressure and condition</li>
+          <li>Verify brake system operation</li>
+          <li>Test all lights and signals</li>
+          <li>Ensure proper load securement</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  .equipment-card {
+    margin-bottom: 16px;
+    border-left: 4px solid #2c5530;
+  }
+
+  .equipment-card .status-maintenance {
+    border-left-color: #ffc107;
+  }
+
+  /* Maintenance Schedule Styles */
+  .maintenance-schedule {
+    margin: 2rem 0;
+  }
+
+  .maintenance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .maintenance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+  }
+
+  .maintenance-info h4 {
+    margin: 0 0 0.5rem 0;
+    color: #856404;
+  }
+
+  .maintenance-info p {
+    margin: 0.25rem 0;
+    color: #856404;
+    font-size: 0.9rem;
+  }
+
+  /* Safety Guidelines Styles */
+  .safety-guidelines {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+  }
+
+  .safety-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .safety-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #dc3545;
+  }
+
+  .safety-item h4 {
+    margin: 0 0 1rem 0;
+    color: #721c24;
+  }
+
+  .safety-item ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .safety-item li {
+    padding: 0.25rem 0;
+    color: #721c24;
+    font-size: 0.9rem;
+  }
+
+  .safety-item li:before {
+    content: "✓ ";
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+
+  .equipment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .equipment-info h4 {
+    margin: 0;
+  }
+
+  .equipment-details {
+    margin: 16px 0;
+  }
+
+  .equipment-details p {
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+  .equipment-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .equipment-actions .btn {
+    flex: 1;
+  }
+
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .tool-card {
+    text-align: center;
+    border-left: 4px solid #28a745;
+  }
+
+  .tool-header {
+    margin-bottom: 16px;
+  }
+
+  .tool-header h4 {
+    margin: 0 0 8px 0;
+  }
+
+  .count-badge {
+    background: #e9ecef;
+    color: #495057;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tool-status {
+    margin: 16px 0;
+  }
+
+  .tool-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .tool-actions .btn {
+    flex: 1;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .status-available {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .status-in-use {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .status-maintenance {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .btn-warning {
+    background: #ffc107;
+    color: #212529;
+    border: 1px solid #ffc107;
+  }
+
+  .btn-warning:hover {
+    background: #e0a800;
+    border-color: #d39e00;
+  }
+</style>
+{% endblock %}

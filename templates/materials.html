@@ -1,0 +1,1132 @@
+{% extends "base.html" %} {% block title %}Materials Management{% endblock %} {% block content %}
+<div class="container">
+  <div class="header">
+    <h1>Materials Management</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="showAddMaterialModal()"><i class="icon">+</i> Add Material</button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Controls -->
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search materials..." onkeyup="filterMaterials()" />
+      <i class="icon">🔍</i>
+    </div>
+    <div class="filter-controls">
+      <select id="typeFilter" onchange="filterMaterials()">
+        <option value="">All Types</option>
+        <option value="block">Block</option>
+        <option value="stone">Stone</option>
+        <option value="concrete">Concrete</option>
+        <option value="brick">Brick</option>
+        <option value="other">Other</option>
+      </select>
+      <select id="sortBy" onchange="sortMaterials()">
+        <option value="name">Sort by Name</option>
+        <option value="price">Sort by Price</option>
+        <option value="type">Sort by Type</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Materials Table -->
+  <div class="materials-table-container">
+    <table class="materials-table" id="materialsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Dimensions</th>
+          <th>Price</th>
+          <th>Supplier</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for material in materials %}
+        <tr class="material-row" data-type="{{ material.material_type }}" data-name="{{ material.name.lower() }}">
+          <td>
+            <div class="material-name">
+              <strong>{{ material.name }}</strong>
+              {% if material.description %}
+              <div class="material-description">
+                {{ material.description[:100] }}{% if material.description|length > 100 %}...{% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <span class="material-type-badge material-type-{{ material.material_type }}">
+              {{ material.material_type.title() }}
+            </span>
+          </td>
+          <td>
+            {% if material.dimensions %}
+            <div class="dimensions">{{ material.dimensions }}</div>
+            {% if material.weight_lbs %}
+            <div class="weight">{{ material.weight_lbs }} lbs</div>
+            {% endif %} {% else %}
+            <span class="no-data">-</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="price">{{ material.formatted_price }}</div>
+          </td>
+          <td>
+            {% if material.supplier %}
+            <div class="supplier">{{ material.supplier }}</div>
+            {% if material.supplier_part_number %}
+            <div class="part-number">{{ material.supplier_part_number }}</div>
+            {% endif %} {% else %}
+            <span class="no-data">-</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="material-actions">
+              <button
+                class="btn btn-outline btn-sm"
+                onclick="viewMaterialDetails('{{ material.id }}')"
+                title="View Details"
+              >
+                <i class="icon">👁️</i>
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="editMaterial('{{ material.id }}')" title="Edit">
+                <i class="icon">✏️</i>
+              </button>
+              <button
+                class="btn btn-danger btn-sm"
+                onclick="deleteMaterial('{{ material.id }}', '{{ material.name }}')"
+                title="Delete"
+              >
+                <i class="icon">🗑️</i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if not materials %}
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h3>No Materials Found</h3>
+      <p>Get started by adding your first material to the inventory.</p>
+      <button class="btn btn-primary" onclick="showAddMaterialModal()">Add Material</button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Materials Summary Section -->
+<div class="materials-summary">
+  <h3>📊 Materials Inventory Overview</h3>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <h4>Total Materials</h4>
+      <p class="summary-number">{{ materials|length }}</p>
+      <small>Active in inventory</small>
+    </div>
+    <div class="summary-card">
+      <h4>Material Categories</h4>
+      <p class="summary-number">{{ materials|map(attribute='material_type')|unique|list|length }}</p>
+      <small>Different types available</small>
+    </div>
+    <div class="summary-card">
+      <h4>Average Cost</h4>
+      <p class="summary-number">
+        ${{ "%.2f"|format((materials|sum(attribute='price_per_unit'))/(materials|length) if materials|length > 0 else 0)
+        }}
+      </p>
+      <small>Per unit average</small>
+    </div>
+  </div>
+</div>
+
+<!-- Material Usage Guidelines -->
+<div class="usage-guidelines">
+  <h3>📋 Material Selection Guide</h3>
+  <div class="guidelines-grid">
+    <div class="guideline-item">
+      <h4>🧱 Concrete Blocks</h4>
+      <p>Best for: Retaining walls, garden borders, structural foundations</p>
+      <p><strong>Key considerations:</strong> Drainage, mortar requirements, load capacity</p>
+    </div>
+    <div class="guideline-item">
+      <h4>🪨 Natural Stone</h4>
+      <p>Best for: Decorative walls, premium landscaping, curved structures</p>
+      <p><strong>Key considerations:</strong> Skilled installation needed, higher cost, weather resistance</p>
+    </div>
+    <div class="guideline-item">
+      <h4>🔸 Brick Pavers</h4>
+      <p>Best for: Walkways, patios, driveways, decorative borders</p>
+      <p><strong>Key considerations:</strong> Pattern layout, sand base, edge restraints</p>
+    </div>
+    <div class="guideline-item">
+      <h4>🌿 Landscape Fabric</h4>
+      <p>Best for: Weed control, soil stabilization, drainage improvement</p>
+      <p><strong>Key considerations:</strong> Permeability, UV resistance, proper overlap</p>
+    </div>
+  </div>
+</div>
+
+<!-- Material Cost Calculator Link -->
+<div class="calculator-link">
+  <h3>🧮 Need Material Calculations?</h3>
+  <p>Use our wall material calculator to estimate quantities and costs for your landscaping projects.</p>
+  <a href="/calculator" class="btn btn-primary">Open Materials Calculator</a>
+</div>
+
+<!-- Supplier Information & Contacts -->
+<div class="supplier-information">
+  <h3>📞 Supplier Contacts & Information</h3>
+  <div class="supplier-grid">
+    <div class="supplier-card">
+      <h4>Premier Building Supply</h4>
+      <p><strong>Phone:</strong> (555) 123-4567</p>
+      <p><strong>Specialty:</strong> Concrete blocks, masonry supplies</p>
+      <p><strong>Delivery:</strong> Next-day delivery available</p>
+      <p><strong>Payment Terms:</strong> Net 30</p>
+    </div>
+    <div class="supplier-card">
+      <h4>Natural Stone Solutions</h4>
+      <p><strong>Phone:</strong> (555) 234-5678</p>
+      <p><strong>Specialty:</strong> Natural stone, flagstone, boulders</p>
+      <p><strong>Delivery:</strong> 2-3 business days</p>
+      <p><strong>Payment Terms:</strong> Net 15</p>
+    </div>
+    <div class="supplier-card">
+      <h4>Landscape Materials Direct</h4>
+      <p><strong>Phone:</strong> (555) 345-6789</p>
+      <p><strong>Specialty:</strong> Mulch, soil, gravel, fabric</p>
+      <p><strong>Delivery:</strong> Same-day for local orders</p>
+      <p><strong>Payment Terms:</strong> COD or Net 30</p>
+    </div>
+  </div>
+</div>
+
+<!-- Material Cost Analysis -->
+<div class="cost-analysis">
+  <h3>💰 Cost Analysis & Pricing Trends</h3>
+  <div class="analysis-content">
+    <div class="price-trends">
+      <h4>Recent Price Changes</h4>
+      <ul>
+        <li>🔺 Concrete blocks: +3% this month (supply chain issues)</li>
+        <li>🔻 Natural stone: -2% this month (seasonal discount)</li>
+        <li>➡️ Brick pavers: Stable pricing</li>
+        <li>🔺 Landscape fabric: +5% this month (material costs)</li>
+      </ul>
+    </div>
+    <div class="cost-tips">
+      <h4>Cost Optimization Tips</h4>
+      <ul>
+        <li>Order concrete blocks in bulk quantities (10+ pallets) for 8% discount</li>
+        <li>Natural stone pricing best in fall/winter months</li>
+        <li>Combine orders from multiple projects to reduce delivery fees</li>
+        <li>Consider alternative materials for budget-conscious clients</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Material Modal -->
+<div id="materialModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Material</h2>
+      <button class="modal-close" onclick="closeMaterialModal()">&times;</button>
+    </div>
+    <form id="materialForm" onsubmit="submitMaterialForm(event)">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="materialName">Material Name *</label>
+            <input type="text" id="materialName" name="name" required />
+          </div>
+          <div class="form-group">
+            <label for="materialType">Material Type *</label>
+            <select id="materialType" name="material_type" required>
+              <option value="">Select Type</option>
+              <option value="block">Block</option>
+              <option value="stone">Stone</option>
+              <option value="concrete">Concrete</option>
+              <option value="brick">Brick</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="materialDescription">Description</label>
+          <textarea
+            id="materialDescription"
+            name="description"
+            rows="3"
+            placeholder="Brief description of the material..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="materialLength">Length (inches)</label>
+            <input type="number" id="materialLength" name="length_inches" step="0.01" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="materialWidth">Width (inches)</label>
+            <input type="number" id="materialWidth" name="width_inches" step="0.01" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="materialHeight">Height (inches)</label>
+            <input type="number" id="materialHeight" name="height_inches" step="0.01" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="materialWeight">Weight (lbs)</label>
+            <input type="number" id="materialWeight" name="weight_lbs" step="0.01" min="0" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="materialPrice">Price per Unit *</label>
+            <input type="number" id="materialPrice" name="price_per_unit" step="0.01" min="0" required />
+          </div>
+          <div class="form-group">
+            <label for="materialUnit">Unit of Measure</label>
+            <select id="materialUnit" name="unit_of_measure">
+              <option value="each">Each</option>
+              <option value="sq_ft">Square Foot</option>
+              <option value="cubic_yard">Cubic Yard</option>
+              <option value="ton">Ton</option>
+              <option value="linear_foot">Linear Foot</option>
+              <option value="gallon">Gallon</option>
+              <option value="pound">Pound</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="materialSupplier">Supplier</label>
+            <input type="text" id="materialSupplier" name="supplier" placeholder="Supplier name" />
+          </div>
+          <div class="form-group">
+            <label for="materialPartNumber">Part Number</label>
+            <input type="text" id="materialPartNumber" name="supplier_part_number" placeholder="Supplier part number" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="materialUseCase">Use Case</label>
+          <textarea
+            id="materialUseCase"
+            name="use_case"
+            rows="2"
+            placeholder="Common uses for this material..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="materialInstallationNotes">Installation Notes</label>
+          <textarea
+            id="materialInstallationNotes"
+            name="installation_notes"
+            rows="3"
+            placeholder="Installation requirements and notes..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeMaterialModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitButton">Add Material</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Material Details Modal -->
+<div id="detailsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Material Details</h2>
+      <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="detailsContent">
+      <!-- Details will be loaded here -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDetailsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .materials-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+
+  .materials-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .materials-table th {
+    background: #f8f9fa;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .materials-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: top;
+  }
+
+  .material-row:hover {
+    background: #f8f9fa;
+  }
+
+  .material-name strong {
+    color: #212529;
+    font-size: 1rem;
+  }
+
+  .material-description {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  .material-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .material-type-block {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+  .material-type-stone {
+    background: #f3e5f5;
+    color: #7b1fa2;
+  }
+  .material-type-concrete {
+    background: #e8f5e8;
+    color: #388e3c;
+  }
+  .material-type-brick {
+    background: #fff3e0;
+    color: #f57c00;
+  }
+  .material-type-other {
+    background: #f5f5f5;
+    color: #616161;
+  }
+
+  .dimensions {
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .weight {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+
+  .price {
+    font-weight: 600;
+    color: #28a745;
+  }
+
+  .supplier {
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .part-number {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+
+  .material-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .material-actions .btn {
+    padding: 0.375rem 0.5rem;
+    min-width: auto;
+  }
+
+  .no-data {
+    color: #6c757d;
+    font-style: italic;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  .search-box .icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+
+  .filter-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .filter-controls select {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background: white;
+    font-size: 1rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h3 {
+    margin-bottom: 0.5rem;
+    color: #495057;
+  }
+
+  .empty-state p {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    color: #212529;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover {
+    color: #495057;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    border-top: 1px solid #dee2e6;
+    background: #f8f9fa;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  @media (max-width: 768px) {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-controls {
+      flex-direction: column;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+      width: 95%;
+      margin: 5% auto;
+    }
+
+    .materials-table {
+      font-size: 0.875rem;
+    }
+
+    .materials-table th,
+    .materials-table td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  let materialsData = {{ materials | tojson }};
+  let currentEditId = null;
+
+  // Filter and search functionality
+  function filterMaterials() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const typeFilter = document.getElementById('typeFilter').value;
+      const rows = document.querySelectorAll('.material-row');
+
+      rows.forEach(row => {
+          const name = row.dataset.name;
+          const type = row.dataset.type;
+
+          const matchesSearch = name.includes(searchTerm);
+          const matchesType = !typeFilter || type === typeFilter;
+
+          if (matchesSearch && matchesType) {
+              row.style.display = '';
+          } else {
+              row.style.display = 'none';
+          }
+      });
+  }
+
+  // Sort functionality
+  function sortMaterials() {
+      const sortBy = document.getElementById('sortBy').value;
+      const tbody = document.querySelector('#materialsTable tbody');
+      const rows = Array.from(tbody.querySelectorAll('.material-row'));
+
+      rows.sort((a, b) => {
+          switch(sortBy) {
+              case 'name':
+                  return a.dataset.name.localeCompare(b.dataset.name);
+              case 'type':
+                  return a.dataset.type.localeCompare(b.dataset.type);
+              case 'price':
+                  // Extract price from the price cell
+                  const priceA = parseFloat(a.querySelector('.price').textContent.replace(/[^0-9.]/g, ''));
+                  const priceB = parseFloat(b.querySelector('.price').textContent.replace(/[^0-9.]/g, ''));
+                  return priceA - priceB;
+              default:
+                  return 0;
+          }
+      });
+
+      // Re-append sorted rows
+      rows.forEach(row => tbody.appendChild(row));
+  }
+
+  // Modal functions
+  function showAddMaterialModal() {
+      currentEditId = null;
+      document.getElementById('modalTitle').textContent = 'Add Material';
+      document.getElementById('submitButton').textContent = 'Add Material';
+      document.getElementById('materialForm').reset();
+      document.getElementById('materialModal').style.display = 'block';
+  }
+
+  function editMaterial(materialId) {
+      const material = materialsData.find(m => m.id === materialId);
+      if (!material) return;
+
+      currentEditId = materialId;
+      document.getElementById('modalTitle').textContent = 'Edit Material';
+      document.getElementById('submitButton').textContent = 'Update Material';
+
+      // Populate form with material data
+      document.getElementById('materialName').value = material.name || '';
+      document.getElementById('materialType').value = material.material_type || '';
+      document.getElementById('materialDescription').value = material.description || '';
+      document.getElementById('materialLength').value = material.length_inches || '';
+      document.getElementById('materialWidth').value = material.width_inches || '';
+      document.getElementById('materialHeight').value = material.height_inches || '';
+      document.getElementById('materialWeight').value = material.weight_lbs || '';
+      document.getElementById('materialPrice').value = material.price_per_unit || '';
+      document.getElementById('materialUnit').value = material.unit_of_measure || 'each';
+      document.getElementById('materialSupplier').value = material.supplier || '';
+      document.getElementById('materialPartNumber').value = material.supplier_part_number || '';
+      document.getElementById('materialUseCase').value = material.use_case || '';
+      document.getElementById('materialInstallationNotes').value = material.installation_notes || '';
+
+      document.getElementById('materialModal').style.display = 'block';
+  }
+
+  function closeMaterialModal() {
+      document.getElementById('materialModal').style.display = 'none';
+      currentEditId = null;
+  }
+
+  function viewMaterialDetails(materialId) {
+      const material = materialsData.find(m => m.id === materialId);
+      if (!material) return;
+
+      const detailsContent = document.getElementById('detailsContent');
+      detailsContent.innerHTML = `
+          <div class="material-details">
+              <div class="detail-section">
+                  <h3>${material.name}</h3>
+                  <p class="material-type-badge material-type-${material.material_type}">${material.material_type}</p>
+              </div>
+
+              ${material.description ? `
+              <div class="detail-section">
+                  <h4>Description</h4>
+                  <p>${material.description}</p>
+              </div>
+              ` : ''}
+
+              <div class="detail-section">
+                  <h4>Specifications</h4>
+                  <div class="specs-grid">
+                      ${material.dimensions ? `<div><strong>Dimensions:</strong> ${material.dimensions}</div>` : ''}
+                      ${material.weight_lbs ? `<div><strong>Weight:</strong> ${material.weight_lbs} lbs</div>` : ''}
+                      <div><strong>Price:</strong> ${material.formatted_price}</div>
+                  </div>
+              </div>
+
+              ${material.supplier ? `
+              <div class="detail-section">
+                  <h4>Supplier Information</h4>
+                  <div class="supplier-info">
+                      <div><strong>Supplier:</strong> ${material.supplier}</div>
+                      ${material.supplier_part_number ? `<div><strong>Part Number:</strong> ${material.supplier_part_number}</div>` : ''}
+                  </div>
+              </div>
+              ` : ''}
+
+              ${material.use_case ? `
+              <div class="detail-section">
+                  <h4>Use Cases</h4>
+                  <p>${material.use_case}</p>
+              </div>
+              ` : ''}
+
+              ${material.installation_notes ? `
+              <div class="detail-section">
+                  <h4>Installation Notes</h4>
+                  <p>${material.installation_notes}</p>
+              </div>
+              ` : ''}
+          </div>
+      `;
+
+      document.getElementById('detailsModal').style.display = 'block';
+  }
+
+  function closeDetailsModal() {
+      document.getElementById('detailsModal').style.display = 'none';
+  }
+
+  function deleteMaterial(materialId, materialName) {
+      if (confirm(`Are you sure you want to delete "${materialName}"?`)) {
+          fetch(`/api/materials/delete/${materialId}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  showNotification('Material deleted successfully', 'success');
+                  setTimeout(() => location.reload(), 1000);
+              } else {
+                  showNotification('Failed to delete material', 'error');
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              showNotification('Error deleting material', 'error');
+          });
+      }
+  }
+
+  function submitMaterialForm(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData.entries());
+
+      // Convert numeric fields
+      if (data.length_inches) data.length_inches = parseFloat(data.length_inches);
+      if (data.width_inches) data.width_inches = parseFloat(data.width_inches);
+      if (data.height_inches) data.height_inches = parseFloat(data.height_inches);
+      if (data.weight_lbs) data.weight_lbs = parseFloat(data.weight_lbs);
+      if (data.price_per_unit) data.price_per_unit = parseFloat(data.price_per_unit);
+
+      const url = currentEditId ? `/api/materials/edit/${currentEditId}` : '/api/materials/add';
+      const method = 'POST';
+
+      fetch(url, {
+          method: method,
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              showNotification(
+                  currentEditId ? 'Material updated successfully' : 'Material added successfully',
+                  'success'
+              );
+              closeMaterialModal();
+              setTimeout(() => location.reload(), 1000);
+          } else {
+              showNotification(data.error || 'Failed to save material', 'error');
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          showNotification('Error saving material', 'error');
+      });
+  }
+
+  // Close modals when clicking outside
+  window.onclick = function(event) {
+      const materialModal = document.getElementById('materialModal');
+      const detailsModal = document.getElementById('detailsModal');
+
+      if (event.target === materialModal) {
+          closeMaterialModal();
+      }
+      if (event.target === detailsModal) {
+          closeDetailsModal();
+      }
+  }
+
+  // Notification function
+  function showNotification(message, type) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.textContent = message;
+
+      // Style the notification
+      notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 1rem 1.5rem;
+          border-radius: 4px;
+          color: white;
+          font-weight: 500;
+          z-index: 1001;
+          animation: slideIn 0.3s ease-out;
+      `;
+
+      if (type === 'success') {
+          notification.style.backgroundColor = '#28a745';
+      } else if (type === 'error') {
+          notification.style.backgroundColor = '#dc3545';
+      } else {
+          notification.style.backgroundColor = '#007bff';
+      }
+
+      document.body.appendChild(notification);
+
+      // Remove after 3 seconds
+      setTimeout(() => {
+          notification.style.animation = 'slideOut 0.3s ease-in';
+          setTimeout(() => {
+              if (notification.parentNode) {
+                  notification.parentNode.removeChild(notification);
+              }
+          }, 300);
+      }, 3000);
+  }
+
+  // Add CSS animations
+  const style = document.createElement('style');
+  style.textContent = `
+      @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+      }
+
+      .material-details .detail-section {
+          margin-bottom: 1.5rem;
+      }
+
+      .material-details .detail-section h3 {
+          margin-bottom: 0.5rem;
+          color: #212529;
+      }
+
+      .material-details .detail-section h4 {
+          margin-bottom: 0.5rem;
+          color: #495057;
+          font-size: 1rem;
+      }
+
+      .specs-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 0.5rem;
+      }
+
+      .supplier-info div {
+          margin-bottom: 0.25rem;
+      }
+
+      /* Materials Summary Styles */
+      .materials-summary {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .summary-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 6px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .summary-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2c5530;
+        margin: 0.5rem 0;
+      }
+
+      .usage-guidelines {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+      }
+
+      .guidelines-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .guideline-item {
+        padding: 1rem;
+        border-left: 4px solid #2c5530;
+        background: #f8f9fa;
+      }
+
+      .calculator-link {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #2c5530, #4a7c59);
+        color: white;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .calculator-link .btn {
+        margin-top: 1rem;
+        background: white;
+        color: #2c5530;
+        border: none;
+      }
+
+      /* Supplier Information Styles */
+      .supplier-information {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+      }
+
+      .supplier-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .supplier-card {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #007bff;
+      }
+
+      .supplier-card h4 {
+        margin: 0 0 1rem 0;
+        color: #007bff;
+      }
+
+      .supplier-card p {
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+      }
+
+      /* Cost Analysis Styles */
+      .cost-analysis {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+      }
+
+      .analysis-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 1rem;
+      }
+
+      .price-trends, .cost-tips {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 6px;
+        border-left: 4px solid #ffc107;
+      }
+
+      .price-trends h4, .cost-tips h4 {
+        margin: 0 0 1rem 0;
+        color: #856404;
+      }
+
+      .price-trends ul, .cost-tips ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .price-trends li, .cost-tips li {
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f8f9fa;
+      }
+  `;
+  document.head.appendChild(style);
+</script>
+{% endblock %}

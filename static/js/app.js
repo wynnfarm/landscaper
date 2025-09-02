@@ -434,5 +434,329 @@ class LandscaperApp {
   }
 }
 
+// Equipment Management Functions
+function checkoutEquipment(equipmentId, equipmentName) {
+  const crewMember = prompt(`Who is checking out ${equipmentName}?`);
+  const project = prompt(`Which project is this for?`);
+
+  if (crewMember && project) {
+    fetch("/api/equipment/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        equipment_id: equipmentId,
+        crew_member: crewMember,
+        project: project,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${equipmentName} checked out to ${crewMember}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to check out equipment", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error checking out equipment", "error");
+      });
+  }
+}
+
+function checkinEquipment(equipmentId, equipmentName) {
+  if (confirm(`Check in ${equipmentName}?`)) {
+    fetch("/api/equipment/checkin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        equipment_id: equipmentId,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${equipmentName} checked in successfully`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to check in equipment", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error checking in equipment", "error");
+      });
+  }
+}
+
+function markRepaired(equipmentId, equipmentName) {
+  const notes = prompt(`Repair notes for ${equipmentName}:`);
+  if (notes !== null) {
+    fetch("/api/equipment/repair", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        equipment_id: equipmentId,
+        notes: notes,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${equipmentName} marked as repaired`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to update equipment status", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error updating equipment", "error");
+      });
+  }
+}
+
+function viewHistory(equipmentId) {
+  showNotification("Equipment history feature coming soon!", "info");
+}
+
+function scheduleMaintenance(equipmentId, equipmentName) {
+  const date = prompt(`Schedule maintenance for ${equipmentName} (YYYY-MM-DD):`);
+  const notes = prompt("Maintenance notes:");
+
+  if (date && notes) {
+    fetch("/api/equipment/maintenance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        equipment_id: equipmentId,
+        date: date,
+        notes: notes,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`Maintenance scheduled for ${equipmentName}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to schedule maintenance", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error scheduling maintenance", "error");
+      });
+  }
+}
+
+// Project Management Functions
+function updateProjectStatus(projectId, projectTitle) {
+  const status = prompt(
+    `Update status for ${projectTitle}:\n1. planning\n2. in_progress\n3. on_hold\n4. completed\n\nEnter status:`,
+  );
+
+  if (status && ["planning", "in_progress", "on_hold", "completed"].includes(status)) {
+    fetch("/api/project/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        project_id: projectId,
+        status: status,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`Project status updated to ${status}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to update project status", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error updating project", "error");
+      });
+  }
+}
+
+function viewProjectDetails(projectId) {
+  showNotification("Project details feature coming soon!", "info");
+}
+
+function assignCrew(projectId, projectTitle) {
+  const crewMember = prompt(`Assign crew member to ${projectTitle}:`);
+  const role = prompt("Role (lead, operator, laborer):");
+
+  if (crewMember && role) {
+    fetch("/api/project/assign-crew", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        project_id: projectId,
+        crew_member: crewMember,
+        role: role,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${crewMember} assigned to ${projectTitle}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to assign crew member", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error assigning crew", "error");
+      });
+  }
+}
+
+function logTime(projectId, projectTitle) {
+  const hours = prompt(`Log hours for ${projectTitle}:`);
+  const description = prompt("Work description:");
+
+  if (hours && description) {
+    fetch("/api/project/log-time", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        project_id: projectId,
+        hours: parseFloat(hours),
+        description: description,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${hours} hours logged for ${projectTitle}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to log time", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error logging time", "error");
+      });
+  }
+}
+
+function viewProjectReport(projectId) {
+  showNotification("Project report feature coming soon!", "info");
+}
+
+function createSimilarProject(projectId) {
+  showNotification("Create similar project feature coming soon!", "info");
+}
+
+// Crew Management Functions
+function callCrewMember(phone, name) {
+  if (confirm(`Call ${name} at ${phone}?`)) {
+    window.location.href = `tel:${phone}`;
+  }
+}
+
+function updateCrewMember(crewId, name) {
+  const status = prompt(`Update status for ${name}:\n1. active\n2. inactive\n3. on_break\n\nEnter status:`);
+
+  if (status && ["active", "inactive", "on_break"].includes(status)) {
+    fetch("/api/crew/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        crew_id: crewId,
+        status: status,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${name} status updated to ${status}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to update crew member", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error updating crew member", "error");
+      });
+  }
+}
+
+function assignToProject(crewId, name) {
+  const project = prompt(`Assign ${name} to which project?`);
+
+  if (project) {
+    fetch("/api/crew/assign-project", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        crew_id: crewId,
+        project: project,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showNotification(`${name} assigned to ${project}`, "success");
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showNotification("Failed to assign crew member", "error");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showNotification("Error assigning crew member", "error");
+      });
+  }
+}
+
+function viewSchedule(crewId, name) {
+  showNotification(`Schedule for ${name} coming soon!`, "info");
+}
+
+// Dashboard Functions
+function checkEquipmentStatus() {
+  fetch("/api/equipment/status")
+    .then((response) => response.json())
+    .then((data) => {
+      const available = data.filter((eq) => eq.status === "available").length;
+      const inUse = data.filter((eq) => eq.status === "in_use").length;
+      const maintenance = data.filter((eq) => eq.status === "maintenance").length;
+
+      const message = `Equipment Status:\n• Available: ${available}\n• In Use: ${inUse}\n• Maintenance: ${maintenance}`;
+      alert(message);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      showNotification("Error checking equipment status", "error");
+    });
+}
+
 // Initialize the app
 const app = new LandscaperApp();
+

@@ -1,8 +1,4 @@
-{% extends "base.html" %}
-
-{% block title %}Wall Material Calculator - Landscaper{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Wall Material Calculator - Landscaper{% endblock %} {% block content %}
 <div class="main-content">
   <!-- Calculator Header -->
   <section class="calculator-header">
@@ -22,14 +18,23 @@
         <div class="form-row">
           <div class="form-group">
             <label for="wall-length" class="form-label">Wall Length (feet)</label>
-            <input type="number" id="wall-length" class="form-input" min="1" max="100" step="0.5" value="20" required>
+            <input type="number" id="wall-length" class="form-input" min="1" max="100" step="0.5" value="20" required />
           </div>
           <div class="form-group">
             <label for="wall-height" class="form-label">Wall Height (feet)</label>
-            <input type="number" id="wall-height" class="form-input" min="0.5" max="20" step="0.25" value="4" required>
+            <input
+              type="number"
+              id="wall-height"
+              class="form-input"
+              min="0.5"
+              max="20"
+              step="0.25"
+              value="4"
+              required
+            />
           </div>
         </div>
-        
+
         <div class="form-group">
           <label for="material-type" class="form-label">Material Type</label>
           <select id="material-type" class="form-input" required>
@@ -43,27 +48,27 @@
             <option value="gabion">Gabion Baskets</option>
           </select>
         </div>
-        
+
         <div class="form-group">
           <label for="specific-material" class="form-label">Specific Material</label>
           <select id="specific-material" class="form-input" required>
             <option value="">Select Material First</option>
           </select>
         </div>
-        
+
         <div class="form-options">
           <label class="checkbox-label">
-            <input type="checkbox" id="include-base" checked>
+            <input type="checkbox" id="include-base" checked />
             <span class="checkmark"></span>
             Include Base Materials
           </label>
           <label class="checkbox-label">
-            <input type="checkbox" id="include-cap" checked>
+            <input type="checkbox" id="include-cap" checked />
             <span class="checkmark"></span>
             Include Cap Materials
           </label>
         </div>
-        
+
         <button type="submit" class="btn btn-primary calculate-btn">
           <span class="btn-icon">🧮</span>
           Calculate Materials
@@ -73,7 +78,7 @@
   </section>
 
   <!-- Visual Wall Representation -->
-  <section class="wall-visualization" id="wall-visualization" style="display: none;">
+  <section class="wall-visualization" id="wall-visualization" style="display: none">
     <div class="card">
       <h3 class="card-title">Wall Visualization</h3>
       <div class="wall-container">
@@ -97,7 +102,7 @@
   </section>
 
   <!-- Results -->
-  <section class="calculator-results" id="calculator-results" style="display: none;">
+  <section class="calculator-results" id="calculator-results" style="display: none">
     <div class="card">
       <h3 class="card-title">Material Calculation Results</h3>
       <div class="results-grid">
@@ -105,17 +110,17 @@
           <h4>Wall Specifications</h4>
           <div id="wall-specs" class="result-content"></div>
         </div>
-        
+
         <div class="result-section">
           <h4>Materials Needed</h4>
           <div id="materials-list" class="result-content"></div>
         </div>
-        
+
         <div class="result-section">
           <h4>Cost Breakdown</h4>
           <div id="cost-breakdown" class="result-content"></div>
         </div>
-        
+
         <div class="result-section">
           <h4>Installation Notes</h4>
           <div id="installation-notes" class="result-content"></div>
@@ -136,329 +141,327 @@
 </div>
 
 <style>
-/* Calculator-specific styles */
-.calculator-form {
-  margin-bottom: 24px;
-}
+  /* Calculator-specific styles */
+  .calculator-form {
+    margin-bottom: 24px;
+  }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.form-options {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.checkbox-label input[type="checkbox"] {
-  margin-right: 8px;
-  transform: scale(1.2);
-}
-
-.calculate-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 18px;
-  padding: 16px 32px;
-}
-
-.btn-icon {
-  font-size: 20px;
-}
-
-/* Wall Visualization */
-.wall-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.wall-diagram {
-  width: 100%;
-  max-width: 600px;
-  height: 300px;
-  border: 2px solid #2c5530;
-  border-radius: 8px;
-  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-  position: relative;
-  overflow: hidden;
-}
-
-.wall-layer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-bottom: 1px solid #2c5530;
-}
-
-.wall-layer.base {
-  background: #8b4513;
-  height: 20%;
-  bottom: 0;
-}
-
-.wall-layer.wall {
-  background: #2c5530;
-  height: 60%;
-  bottom: 20%;
-}
-
-.wall-layer.cap {
-  background: #4a7c59;
-  height: 20%;
-  bottom: 80%;
-}
-
-.wall-block {
-  position: absolute;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(44, 85, 48, 0.8);
-}
-
-.wall-block.cap {
-  background: rgba(74, 124, 89, 0.8);
-}
-
-.wall-block.base {
-  background: rgba(139, 69, 19, 0.8);
-}
-
-.wall-legend {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.legend-color {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 1px solid #2c5530;
-}
-
-.legend-color.base {
-  background: #8b4513;
-}
-
-.legend-color.wall {
-  background: #2c5530;
-}
-
-.legend-color.cap {
-  background: #4a7c59;
-}
-
-/* Results */
-.results-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.result-section {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
-
-.result-section h4 {
-  color: #2c5530;
-  margin-bottom: 12px;
-  font-size: 16px;
-}
-
-.result-content {
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.result-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.result-item:last-child {
-  border-bottom: none;
-}
-
-.result-item.total {
-  font-weight: 600;
-  color: #2c5530;
-  border-top: 2px solid #2c5530;
-  margin-top: 8px;
-  padding-top: 8px;
-}
-
-/* Material Details */
-.material-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.material-spec {
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 6px;
-  border-left: 4px solid #2c5530;
-}
-
-.material-spec h5 {
-  color: #2c5530;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.material-spec p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: #495057;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
   .form-row {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
   }
-  
-  .results-grid {
-    grid-template-columns: 1fr;
+
+  .form-options {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
   }
-  
-  .material-details {
-    grid-template-columns: 1fr;
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
   }
-  
-  .wall-legend {
+
+  .checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+  }
+
+  .calculate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 18px;
+    padding: 16px 32px;
+  }
+
+  .btn-icon {
+    font-size: 20px;
+  }
+
+  /* Wall Visualization */
+  .wall-container {
+    display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 20px;
   }
-  
+
   .wall-diagram {
-    height: 200px;
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    border: 2px solid #2c5530;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    position: relative;
+    overflow: hidden;
   }
-}
 
-@media (max-width: 480px) {
-  .form-options {
-    flex-direction: column;
-    gap: 12px;
+  .wall-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-bottom: 1px solid #2c5530;
   }
-  
-  .calculate-btn {
+
+  .wall-layer.base {
+    background: #8b4513;
+    height: 20%;
+    bottom: 0;
+  }
+
+  .wall-layer.wall {
+    background: #2c5530;
+    height: 60%;
+    bottom: 20%;
+  }
+
+  .wall-layer.cap {
+    background: #4a7c59;
+    height: 20%;
+    bottom: 80%;
+  }
+
+  .wall-block {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(44, 85, 48, 0.8);
+  }
+
+  .wall-block.cap {
+    background: rgba(74, 124, 89, 0.8);
+  }
+
+  .wall-block.base {
+    background: rgba(139, 69, 19, 0.8);
+  }
+
+  .wall-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #2c5530;
+  }
+
+  .legend-color.base {
+    background: #8b4513;
+  }
+
+  .legend-color.wall {
+    background: #2c5530;
+  }
+
+  .legend-color.cap {
+    background: #4a7c59;
+  }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .result-section {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+  }
+
+  .result-section h4 {
+    color: #2c5530;
+    margin-bottom: 12px;
     font-size: 16px;
-    padding: 14px 24px;
   }
-}
-</style>
-{% endblock %}
 
-{% block extra_scripts %}
+  .result-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .result-item:last-child {
+    border-bottom: none;
+  }
+
+  .result-item.total {
+    font-weight: 600;
+    color: #2c5530;
+    border-top: 2px solid #2c5530;
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  /* Material Details */
+  .material-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .material-spec {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid #2c5530;
+  }
+
+  .material-spec h5 {
+    color: #2c5530;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .material-spec p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: #495057;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .material-details {
+      grid-template-columns: 1fr;
+    }
+
+    .wall-legend {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .wall-diagram {
+      height: 200px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .form-options {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calculate-btn {
+      font-size: 16px;
+      padding: 14px 24px;
+    }
+  }
+</style>
+{% endblock %} {% block extra_scripts %}
 <script>
-class WallCalculator {
-  constructor() {
-    this.materials = {};
-    this.currentCalculation = null;
-    this.setupEventListeners();
-    this.loadMaterials();
-  }
-  
-  setupEventListeners() {
-    const form = document.getElementById('calculator-form');
-    const materialTypeSelect = document.getElementById('material-type');
-    const specificMaterialSelect = document.getElementById('specific-material');
-    
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.calculateMaterials();
-    });
-    
-    materialTypeSelect.addEventListener('change', () => {
-      this.updateSpecificMaterials();
-    });
-    
-    specificMaterialSelect.addEventListener('change', () => {
-      this.showMaterialDetails();
-    });
-  }
-  
-  async loadMaterials() {
-    try {
-      const response = await fetch('/api/materials');
-      this.materials = await response.json();
-    } catch (error) {
-      console.error('Failed to load materials:', error);
-      // Fallback to hardcoded materials for demo
-      this.materials = {
-        "versa_lok_standard": {
-          "name": "Versa-Lok Standard Block",
-          "type": "retaining_wall_blocks",
-          "dimensions": "12\" x 6\" x 4\"",
-          "weight": 35,
-          "price": 4.50,
-          "description": "Interlocking concrete block for retaining walls"
-        }
-      };
+  class WallCalculator {
+    constructor() {
+      this.materials = {};
+      this.currentCalculation = null;
+      this.setupEventListeners();
+      this.loadMaterials();
     }
-  }
-  
-  updateSpecificMaterials() {
-    const materialType = document.getElementById('material-type').value;
-    const specificSelect = document.getElementById('specific-material');
-    
-    specificSelect.innerHTML = '<option value="">Select Material</option>';
-    
-    if (!materialType) return;
-    
-    // Filter materials by type
-    const filteredMaterials = Object.entries(this.materials).filter(
-      ([id, material]) => material.type === materialType
-    );
-    
-    filteredMaterials.forEach(([id, material]) => {
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = material.name;
-      specificSelect.appendChild(option);
-    });
-  }
-  
-  showMaterialDetails() {
-    const materialId = document.getElementById('specific-material').value;
-    const detailsDiv = document.getElementById('material-details');
-    
-    if (!materialId || !this.materials[materialId]) {
-      detailsDiv.innerHTML = '<p class="text-muted">Select a material to view detailed information</p>';
-      return;
+
+    setupEventListeners() {
+      const form = document.getElementById("calculator-form");
+      const materialTypeSelect = document.getElementById("material-type");
+      const specificMaterialSelect = document.getElementById("specific-material");
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        this.calculateMaterials();
+      });
+
+      materialTypeSelect.addEventListener("change", () => {
+        this.updateSpecificMaterials();
+      });
+
+      specificMaterialSelect.addEventListener("change", () => {
+        this.showMaterialDetails();
+      });
     }
-    
-    const material = this.materials[materialId];
-    
-    detailsDiv.innerHTML = `
+
+    async loadMaterials() {
+      try {
+        const response = await fetch("/api/materials");
+        this.materials = await response.json();
+      } catch (error) {
+        console.error("Failed to load materials:", error);
+        // Fallback to hardcoded materials for demo
+        this.materials = {
+          versa_lok_standard: {
+            name: "Versa-Lok Standard Block",
+            type: "retaining_wall_blocks",
+            dimensions: '12" x 6" x 4"',
+            weight: 35,
+            price: 4.5,
+            description: "Interlocking concrete block for retaining walls",
+          },
+        };
+      }
+    }
+
+    updateSpecificMaterials() {
+      const materialType = document.getElementById("material-type").value;
+      const specificSelect = document.getElementById("specific-material");
+
+      specificSelect.innerHTML = '<option value="">Select Material</option>';
+
+      if (!materialType) return;
+
+      // Filter materials by type
+      const filteredMaterials = Object.entries(this.materials).filter(
+        ([id, material]) => material.type === materialType,
+      );
+
+      filteredMaterials.forEach(([id, material]) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = material.name;
+        specificSelect.appendChild(option);
+      });
+    }
+
+    showMaterialDetails() {
+      const materialId = document.getElementById("specific-material").value;
+      const detailsDiv = document.getElementById("material-details");
+
+      if (!materialId || !this.materials[materialId]) {
+        detailsDiv.innerHTML = '<p class="text-muted">Select a material to view detailed information</p>';
+        return;
+      }
+
+      const material = this.materials[materialId];
+
+      detailsDiv.innerHTML = `
       <div class="material-spec">
         <h5>Dimensions</h5>
         <p>${material.dimensions}</p>
@@ -468,56 +471,56 @@ class WallCalculator {
       <div class="material-spec">
         <h5>Description</h5>
         <p>${material.description}</p>
-        <p><strong>Use Case:</strong> ${material.use_case || 'General landscaping'}</p>
+        <p><strong>Use Case:</strong> ${material.use_case || "General landscaping"}</p>
       </div>
     `;
-  }
-  
-  async calculateMaterials() {
-    const wallLength = parseFloat(document.getElementById('wall-length').value);
-    const wallHeight = parseFloat(document.getElementById('wall-height').value);
-    const materialId = document.getElementById('specific-material').value;
-    const includeBase = document.getElementById('include-base').checked;
-    const includeCap = document.getElementById('include-cap').checked;
-    
-    if (!materialId) {
-      alert('Please select a material');
-      return;
     }
-    
-    try {
-      const response = await fetch('/api/calculate-materials', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wall_length: wallLength,
-          wall_height: wallHeight,
-          material_id: materialId,
-          include_base: includeBase,
-          include_cap: includeCap
-        })
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        this.currentCalculation = result.data;
-        this.displayResults(result.data);
-        this.drawWallVisualization(result.data);
-      } else {
-        alert('Error calculating materials: ' + result.error);
+
+    async calculateMaterials() {
+      const wallLength = parseFloat(document.getElementById("wall-length").value);
+      const wallHeight = parseFloat(document.getElementById("wall-height").value);
+      const materialId = document.getElementById("specific-material").value;
+      const includeBase = document.getElementById("include-base").checked;
+      const includeCap = document.getElementById("include-cap").checked;
+
+      if (!materialId) {
+        alert("Please select a material");
+        return;
       }
-    } catch (error) {
-      console.error('Calculation error:', error);
-      alert('Error calculating materials. Please try again.');
+
+      try {
+        const response = await fetch("/api/calculate-materials", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            wall_length: wallLength,
+            wall_height: wallHeight,
+            material_id: materialId,
+            include_base: includeBase,
+            include_cap: includeCap,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          this.currentCalculation = result.data;
+          this.displayResults(result.data);
+          this.drawWallVisualization(result.data);
+        } else {
+          alert("Error calculating materials: " + result.error);
+        }
+      } catch (error) {
+        console.error("Calculation error:", error);
+        alert("Error calculating materials. Please try again.");
+      }
     }
-  }
-  
-  displayResults(data) {
-    // Wall Specifications
-    document.getElementById('wall-specs').innerHTML = `
+
+    displayResults(data) {
+      // Wall Specifications
+      document.getElementById("wall-specs").innerHTML = `
       <div class="result-item">
         <span>Length:</span>
         <span>${data.wall_specifications.length_feet}'</span>
@@ -531,110 +534,120 @@ class WallCalculator {
         <span>${(data.wall_specifications.length_feet * data.wall_specifications.height_feet).toFixed(1)} sq ft</span>
       </div>
     `;
-    
-    // Materials Needed
-    const materialsHtml = Object.entries(data.materials_needed)
-      .map(([material, quantity]) => `
+
+      // Materials Needed
+      const materialsHtml = Object.entries(data.materials_needed)
+        .map(
+          ([material, quantity]) => `
         <div class="result-item">
           <span>${this.formatMaterialName(material)}:</span>
           <span>${quantity}</span>
         </div>
-      `).join('');
-    
-    document.getElementById('materials-list').innerHTML = materialsHtml;
-    
-    // Cost Breakdown
-    const costHtml = Object.entries(data.cost_breakdown)
-      .map(([item, cost]) => `
+      `,
+        )
+        .join("");
+
+      document.getElementById("materials-list").innerHTML = materialsHtml;
+
+      // Cost Breakdown
+      const costHtml = Object.entries(data.cost_breakdown)
+        .map(
+          ([item, cost]) => `
         <div class="result-item">
           <span>${this.formatMaterialName(item)}:</span>
           <span>$${cost.toFixed(2)}</span>
         </div>
-      `).join('');
-    
-    const totalCostHtml = costHtml + `
+      `,
+        )
+        .join("");
+
+      const totalCostHtml =
+        costHtml +
+        `
       <div class="result-item total">
         <span>Total Estimated Cost:</span>
         <span>$${data.total_estimated_cost}</span>
       </div>
     `;
-    
-    document.getElementById('cost-breakdown').innerHTML = totalCostHtml;
-    
-    // Installation Notes
-    document.getElementById('installation-notes').innerHTML = `
+
+      document.getElementById("cost-breakdown").innerHTML = totalCostHtml;
+
+      // Installation Notes
+      document.getElementById("installation-notes").innerHTML = `
       <ul>
-        ${data.installation_notes.map(note => `<li>${note}</li>`).join('')}
+        ${data.installation_notes.map((note) => `<li>${note}</li>`).join("")}
       </ul>
     `;
-    
-    // Show results section
-    document.getElementById('calculator-results').style.display = 'block';
-  }
-  
-  drawWallVisualization(data) {
-    const diagram = document.getElementById('wall-diagram');
-    const wallLength = data.wall_specifications.length_feet;
-    const wallHeight = data.wall_specifications.height_feet;
-    
-    // Clear previous diagram
-    diagram.innerHTML = '';
-    
-    // Calculate block dimensions for visualization
-    const blockLength = 12; // inches
-    const blockHeight = 4;  // inches
-    
-    const blocksPerCourse = Math.ceil(wallLength * 12 / blockLength);
-    const courses = Math.ceil(wallHeight * 12 / blockHeight);
-    
-    // Create wall layers
-    const baseLayer = document.createElement('div');
-    baseLayer.className = 'wall-layer base';
-    diagram.appendChild(baseLayer);
-    
-    const wallLayer = document.createElement('div');
-    wallLayer.className = 'wall-layer wall';
-    diagram.appendChild(wallLayer);
-    
-    const capLayer = document.createElement('div');
-    capLayer.className = 'wall-layer cap';
-    diagram.appendChild(capLayer);
-    
-    // Draw individual blocks
-    for (let course = 0; course < courses; course++) {
-      for (let block = 0; block < blocksPerCourse; block++) {
-        const blockElement = document.createElement('div');
-        blockElement.className = 'wall-block';
-        
-        if (course === courses - 1) {
-          blockElement.classList.add('cap');
-        }
-        
-        // Position the block
-        const blockWidth = (100 / blocksPerCourse);
-        const blockHeightPercent = (100 / courses);
-        
-        blockElement.style.left = `${block * blockWidth}%`;
-        blockElement.style.width = `${blockWidth}%`;
-        blockElement.style.height = `${blockHeightPercent}%`;
-        blockElement.style.bottom = `${(courses - 1 - course) * blockHeightPercent}%`;
-        
-        diagram.appendChild(blockElement);
-      }
-    }
-    
-    // Show visualization
-    document.getElementById('wall-visualization').style.display = 'block';
-  }
-  
-  formatMaterialName(name) {
-    return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  }
-}
 
-// Initialize calculator when page loads
-document.addEventListener('DOMContentLoaded', () => {
-  new WallCalculator();
-});
+      // Show results section
+      document.getElementById("calculator-results").style.display = "block";
+    }
+
+    drawWallVisualization(data) {
+      const diagram = document.getElementById("wall-diagram");
+      const wallLength = data.wall_specifications.length_feet;
+      const wallHeight = data.wall_specifications.height_feet;
+
+      // Clear previous diagram
+      diagram.innerHTML = "";
+
+      // Calculate block dimensions for visualization
+      const blockLength = 12; // inches
+      const blockHeight = 4; // inches
+
+      const blocksPerCourse = Math.ceil((wallLength * 12) / blockLength);
+      const courses = Math.ceil((wallHeight * 12) / blockHeight);
+
+      // Create wall layers
+      const baseLayer = document.createElement("div");
+      baseLayer.className = "wall-layer base";
+      diagram.appendChild(baseLayer);
+
+      const wallLayer = document.createElement("div");
+      wallLayer.className = "wall-layer wall";
+      diagram.appendChild(wallLayer);
+
+      const capLayer = document.createElement("div");
+      capLayer.className = "wall-layer cap";
+      diagram.appendChild(capLayer);
+
+      // Draw individual blocks
+      for (let course = 0; course < courses; course++) {
+        for (let block = 0; block < blocksPerCourse; block++) {
+          const blockElement = document.createElement("div");
+          blockElement.className = "wall-block";
+
+          if (course === courses - 1) {
+            blockElement.classList.add("cap");
+          }
+
+          // Position the block
+          const blockWidth = 100 / blocksPerCourse;
+          const blockHeightPercent = 100 / courses;
+
+          blockElement.style.left = `${block * blockWidth}%`;
+          blockElement.style.width = `${blockWidth}%`;
+          blockElement.style.height = `${blockHeightPercent}%`;
+          blockElement.style.bottom = `${(courses - 1 - course) * blockHeightPercent}%`;
+
+          diagram.appendChild(blockElement);
+        }
+      }
+
+      // Show visualization
+      document.getElementById("wall-visualization").style.display = "block";
+    }
+
+    formatMaterialName(name) {
+      return name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+  }
+
+  // Initialize calculator when page loads
+  document.addEventListener("DOMContentLoaded", () => {
+    new WallCalculator();
+  });
 </script>
 {% endblock %}
+
+

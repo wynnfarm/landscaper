@@ -1,0 +1,140 @@
+{% extends "base.html" %} {% block title %}Projects - Staff Dashboard{% endblock %} {% block content %}
+<div class="main-content">
+  <h2 class="page-title">📋 Project Management</h2>
+
+  <!-- Active Projects -->
+  <section class="mb-3">
+    <h3 class="card-title">Active Projects</h3>
+    <div class="project-list">
+      {% for project in projects.active_projects %}
+      <div class="card project-card">
+        <div class="card-header">
+          <h4 style="color: #2c5530; margin-bottom: 8px">{{ project.title }}</h4>
+          <p class="text-muted">Project ID: {{ project.job_number }}</p>
+        </div>
+        <div class="project-details">
+          <p><strong>Location:</strong> {{ project.full_site_address }}</p>
+          <p>
+            <strong>Status:</strong>
+            <span class="status-badge status-{{ project.status.lower().replace(' ', '-') }}"
+              >{{ project.status_text }}</span
+            >
+          </p>
+          <p><strong>Crew Lead:</strong> {{ project.lead_worker_name }}</p>
+          <p><strong>Start Date:</strong> {{ project.estimated_start_date }}</p>
+          <p><strong>Est. Completion:</strong> {{ project.estimated_end_date }}</p>
+        </div>
+        <div class="project-actions">
+          <button
+            class="btn btn-primary btn-sm"
+            onclick="updateProjectStatus('{{ project.id }}', '{{ project.title }}')"
+          >
+            Update Status
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="viewProjectDetails('{{ project.id }}')">View Details</button>
+          <button class="btn btn-outline btn-sm" onclick="assignCrew('{{ project.id }}', '{{ project.title }}')">
+            Assign Crew
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="logTime('{{ project.id }}', '{{ project.title }}')">
+            Log Time
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Completed Projects -->
+  <section class="mb-3">
+    <h3 class="card-title">Recently Completed</h3>
+    <div class="project-list">
+      {% for project in projects.completed_projects %}
+      <div class="card project-card completed">
+        <div class="card-header">
+          <h4 style="color: #2c5530; margin-bottom: 8px">{{ project.title }}</h4>
+          <p class="text-muted">Project ID: {{ project.job_number }}</p>
+        </div>
+        <div class="project-details">
+          <p><strong>Location:</strong> {{ project.full_site_address }}</p>
+          <p><strong>Status:</strong> <span class="status-badge status-completed">{{ project.status_text }}</span></p>
+          <p><strong>Crew Lead:</strong> {{ project.lead_worker_name }}</p>
+          <p><strong>Completed:</strong> {{ project.actual_end_date }}</p>
+        </div>
+        <div class="project-actions">
+          <button class="btn btn-outline btn-sm" onclick="viewProjectReport('{{ project.id }}')">View Report</button>
+          <button class="btn btn-outline btn-sm" onclick="viewProjectDetails('{{ project.id }}')">View Details</button>
+          <button class="btn btn-outline btn-sm" onclick="createSimilarProject('{{ project.id }}')">
+            Create Similar
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <section class="quick-actions">
+    <h3 class="card-title">Quick Actions</h3>
+    <div class="grid grid-2">
+      <button class="btn btn-primary">➕ New Project</button>
+      <button class="btn btn-outline">📊 Project Reports</button>
+      <button class="btn btn-outline">📅 Schedule View</button>
+      <button class="btn btn-secondary">📋 Templates</button>
+    </div>
+  </section>
+</div>
+
+<style>
+  .project-card {
+    margin-bottom: 16px;
+    border-left: 4px solid #2c5530;
+  }
+
+  .project-card.completed {
+    border-left-color: #28a745;
+    opacity: 0.8;
+  }
+
+  .project-details {
+    margin: 16px 0;
+  }
+
+  .project-details p {
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .status-in-progress {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .status-planning {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .status-completed {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .project-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .project-actions .btn {
+    flex: 1;
+  }
+</style>
+{% endblock %}

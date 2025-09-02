@@ -16,6 +16,10 @@ from mcp_integration import LandscaperAIAgent
 # Import landscaping materials calculator
 from landscaping_materials import LandscapingMaterials
 
+# Import database models and initialization
+from models.base import init_database
+from models import *
+
 app = Flask(__name__)
 CORS(app)
 
@@ -29,6 +33,14 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Initialize Database
+try:
+    db = init_database(app)
+    logger.info("Database initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize database: {e}")
+    db = None
 
 # Initialize AI Agent with MCP integration
 try:
@@ -49,198 +61,479 @@ except Exception as e:
 @app.route('/')
 def index():
     """Home page - main landing page for mobile users."""
-    return render_template('index.html')
+    return render_template('index.html', 
+                         page_title="Landscaper Staff Dashboard",
+                         page_header="🏠 Landscaper Staff Dashboard",
+                         page_subtitle="Tools and resources for landscape professionals")
 
-@app.route('/services')
-def services():
-    """Services page - detailed information about landscaping services."""
-    services_data = {
-        'lawn_care': {
-            'title': 'Lawn Care Services',
-            'description': 'Professional lawn maintenance and care',
-            'services': [
-                'Regular mowing and edging',
-                'Fertilization and soil treatment',
-                'Weed control and prevention',
-                'Aeration and overseeding',
-                'Pest and disease management'
-            ],
-            'pricing': 'Starting at $50/month'
-        },
-        'tree_services': {
-            'title': 'Tree Services',
-            'description': 'Complete tree care and maintenance',
-            'services': [
-                'Tree pruning and trimming',
-                'Tree removal and stump grinding',
-                'Disease diagnosis and treatment',
-                'Emergency tree services',
-                'Tree planting and transplanting'
-            ],
-            'pricing': 'Starting at $75/tree'
-        },
-        'garden_design': {
-            'title': 'Garden Design',
-            'description': 'Custom landscape design and installation',
-            'services': [
-                'Landscape planning and design',
-                'Plant selection and installation',
-                'Hardscaping and patios',
-                'Irrigation system installation',
-                'Outdoor lighting design'
-            ],
-            'pricing': 'Starting at $500/project'
-        },
-        'cleanup': {
-            'title': 'Cleanup Services',
-            'description': 'Seasonal cleanup and maintenance',
-            'services': [
-                'Spring and fall cleanup',
-                'Leaf removal and disposal',
-                'Debris removal',
-                'Mulching and bed preparation',
-                'Gutter cleaning'
-            ],
-            'pricing': 'Starting at $100/visit'
+@app.route('/projects')
+def projects():
+    """Projects page - current and completed landscaping projects."""
+    if not db:
+        return render_template('projects.html', 
+                             projects={'active_projects': [], 'completed_projects': []},
+                             page_title="Project Management - Staff Dashboard",
+                             page_header="📁 Active & Completed Projects",
+                             page_subtitle="Track active and completed projects")
+    
+    try:
+        # Get active projects (planning, in_progress, on_hold)
+        active_projects = Job.query.filter(
+            Job.status.in_(['planning', 'in_progress', 'on_hold'])
+        ).order_by(Job.priority.asc(), Job.estimated_start_date.asc()).all()
+        
+        # Get completed projects
+        completed_projects = Job.query.filter(
+            Job.status == 'completed'
+        ).order_by(Job.actual_end_date.desc()).limit(10).all()
+        
+        projects_data = {
+            'active_projects': [project.to_dict() for project in active_projects],
+            'completed_projects': [project.to_dict() for project in completed_projects]
         }
-    }
-    return render_template('services.html', services=services_data)
+        
+        return render_template('projects.html', 
+                             projects=projects_data,
+                             page_title="Project Management - Staff Dashboard",
+                             page_header="📁 Active & Completed Projects",
+                             page_subtitle="Track active and completed projects")
+        
+    except Exception as e:
+        logger.error(f"Error fetching projects: {e}")
+        return render_template('projects.html', 
+                             projects={'active_projects': [], 'completed_projects': []},
+                             page_title="Project Management - Staff Dashboard",
+                             page_header="📁 Active & Completed Projects",
+                             page_subtitle="Track active and completed projects")
 
-@app.route('/gallery')
-def gallery():
-    """Gallery page - showcase of completed landscaping projects."""
-    gallery_data = {
-        'before_after': [
-            {
-                'title': 'Residential Lawn Transformation',
-                'description': 'Complete lawn renovation with new sod and irrigation',
-                'before': '/static/images/before1.jpg',
-                'after': '/static/images/after1.jpg'
-            },
-            {
-                'title': 'Garden Design Project',
-                'description': 'Custom garden design with native plants and hardscaping',
-                'before': '/static/images/before2.jpg',
-                'after': '/static/images/after2.jpg'
-            }
-        ],
-        'featured_projects': [
-            {
-                'title': 'Modern Landscape Design',
-                'description': 'Contemporary design with clean lines and minimal maintenance',
-                'image': '/static/images/project1.jpg'
-            },
-            {
-                'title': 'Traditional English Garden',
-                'description': 'Classic English garden with perennial borders and pathways',
-                'image': '/static/images/project2.jpg'
-            },
-            {
-                'title': 'Drought-Tolerant Landscape',
-                'description': 'Water-wise design with native and adapted plants',
-                'image': '/static/images/project3.jpg'
-            }
+@app.route('/materials')
+def materials():
+    """Materials management page - inventory and material information."""
+    if not db:
+        return render_template('materials.html', 
+                             materials=[],
+                             page_title="Materials Management",
+                             page_header="📦 Materials Inventory",
+                             page_subtitle="Manage landscaping materials and inventory")
+    
+    try:
+        # Get all active materials
+        materials = Material.query.filter(Material.is_active == True).order_by(Material.name.asc()).all()
+        
+        return render_template('materials.html', 
+                             materials=[material.to_dict() for material in materials],
+                             page_title="Materials Management",
+                             page_header="📦 Materials Inventory",
+                             page_subtitle="Manage landscaping materials and inventory")
+        
+    except Exception as e:
+        logger.error(f"Error fetching materials: {e}")
+        return render_template('materials.html', 
+                             materials=[],
+                             page_title="Materials Management",
+                             page_header="📦 Materials Inventory",
+                             page_subtitle="Manage landscaping materials and inventory")
+
+@app.route('/tools')
+def tools():
+    """Tools page - landscaping tools and equipment management."""
+    if not db:
+        return render_template('tools.html', 
+                             tools={'equipment': [], 'hand_tools': []},
+                             page_title="Equipment & Tools - Staff Dashboard",
+                             page_header="🔧 Equipment & Tools",
+                             page_subtitle="Manage landscaping equipment and tools")
+    
+    try:
+        # Get all equipment
+        equipment = Equipment.query.filter(Equipment.is_active == True).all()
+        
+        # For now, we'll simulate hand tools data since we don't have a separate hand_tools table
+        # In a real implementation, you might want to create a separate HandTool model
+        hand_tools = [
+            {'name': 'Shovel - Round Point', 'count': 5, 'status': 'Available'},
+            {'name': 'Rake - Leaf Rake', 'count': 3, 'status': 'Available'},
+            {'name': 'Pruning Shears', 'count': 8, 'status': 'Available'},
+            {'name': 'Hoe - Garden Hoe', 'count': 2, 'status': 'In Use'}
         ]
-    }
-    return render_template('gallery.html', gallery=gallery_data)
+        
+        tools_data = {
+            'equipment': [eq.to_dict() for eq in equipment],
+            'hand_tools': hand_tools
+        }
+        
+        return render_template('tools.html', 
+                             tools=tools_data,
+                             page_title="Equipment & Tools - Staff Dashboard",
+                             page_header="🔧 Equipment & Tools",
+                             page_subtitle="Manage landscaping equipment and tools")
+        
+    except Exception as e:
+        logger.error(f"Error fetching tools: {e}")
+        return render_template('tools.html', 
+                             tools={'equipment': [], 'hand_tools': []},
+                             page_title="Equipment & Tools - Staff Dashboard",
+                             page_header="🔧 Equipment & Tools",
+                             page_subtitle="Manage landscaping equipment and tools")
 
 @app.route('/chat')
 def chat():
     """AI Chat page - interactive AI assistant."""
-    return render_template('chat.html')
+    return render_template('chat.html',
+                         page_title="AI Assistant - Landscaper",
+                         page_header="🤖 AI Landscaping Assistant",
+                         page_subtitle="Ask me anything about our landscaping services!")
 
 @app.route('/calculator')
 def calculator():
     """Wall Material Calculator page."""
-    return render_template('calculator.html')
+    return render_template('calculator.html',
+                         page_title="Wall Material Calculator - Landscaper",
+                         page_header="🧮 Wall Calculator",
+                         page_subtitle="Calculate materials needed for your landscape wall project")
 
-@app.route('/contact', methods=['GET', 'POST'])
-def contact():
-    """Contact page - contact form and business information."""
-    if request.method == 'POST':
-        # Handle form submission
-        name = request.form.get('name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        service = request.form.get('service')
-        message = request.form.get('message')
-        
-        # Here you would typically save to database or send email
-        # For now, we'll just return a success message
-        
-        return jsonify({
-            'success': True,
-            'message': 'Thank you for your inquiry! We will contact you within 24 hours.'
-        })
+@app.route('/crew')
+def crew():
+    """Crew management page - staff information and schedules."""
+    if not db:
+        return render_template('crew.html', 
+                             crew={'active_crew': [], 'schedule': {}},
+                             page_title="Crew Management - Staff Dashboard",
+                             page_header="👥 Crew Management",
+                             page_subtitle="Manage staff schedules and assignments")
     
-    contact_info = {
-        'phone': '555-0123',
-        'email': 'info@landscaper.com',
-        'address': '123 Garden Street, Green City, GC 12345',
-        'hours': {
-            'monday_friday': '7:00 AM - 6:00 PM',
-            'saturday': '8:00 AM - 4:00 PM',
-            'sunday': 'Closed'
-        },
-        'services': [
-            'Lawn Care',
-            'Tree Services',
-            'Garden Design',
-            'Cleanup Services',
-            'Emergency Services'
-        ]
-    }
-    return render_template('contact.html', contact_info=contact_info)
+    try:
+        # Get active crew members
+        active_crew = CrewMember.query.filter(CrewMember.is_active == True).all()
+        
+        # Get today's schedule information
+        from datetime import date
+        today = date.today()
+        
+        # Get today's job assignments
+        today_assignments = JobCrewAssignment.query.filter(
+            JobCrewAssignment.assigned_date == today
+        ).all()
+        
+        # Get today's tasks from active jobs
+        active_jobs = Job.query.filter(
+            Job.status.in_(['planning', 'in_progress'])
+        ).all()
+        
+        tasks = []
+        for job in active_jobs:
+            if job.estimated_start_date and job.estimated_start_date <= today:
+                tasks.append(f"Work on {job.title} at {job.full_site_address or 'site'}")
+        
+        crew_data = {
+            'active_crew': [member.to_dict() for member in active_crew],
+            'schedule': {
+                'today': today.isoformat(),
+                'weather': 'Sunny, 75°F',  # This could be integrated with a weather API
+                'tasks': tasks[:5]  # Limit to 5 tasks
+            }
+        }
+        
+        return render_template('crew.html', 
+                             crew=crew_data,
+                             page_title="Crew Management - Staff Dashboard",
+                             page_header="👥 Crew Management",
+                             page_subtitle="Manage staff schedules and assignments")
+        
+    except Exception as e:
+        logger.error(f"Error fetching crew data: {e}")
+        return render_template('crew.html', 
+                             crew={'active_crew': [], 'schedule': {}},
+                             page_title="Crew Management - Staff Dashboard",
+                             page_header="👥 Crew Management",
+                             page_subtitle="Manage staff schedules and assignments")
 
-@app.route('/quote', methods=['POST'])
-def get_quote():
-    """Handle quote request form submission."""
-    data = request.get_json()
+@app.route('/api/project/update', methods=['POST'])
+def update_project():
+    """Update project status or information."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
     
-    # Validate required fields
-    required_fields = ['name', 'email', 'phone', 'service_type']
-    for field in required_fields:
-        if not data.get(field):
-            return jsonify({
-                'success': False,
-                'message': f'{field.replace("_", " ").title()} is required'
-            }), 400
+    try:
+        data = request.get_json()
+        project_id = data.get('project_id')
+        status = data.get('status')
+        
+        if not project_id or not status:
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find project
+        project = Job.query.get(project_id)
+        if not project:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+        # Update project status
+        project.status = status
+        if status == 'completed':
+            project.actual_end_date = datetime.now().date()
+        
+        db.session.commit()
+        
+        logger.info(f"Project {project.title} status updated to {status}")
+        return jsonify({'success': True, 'message': 'Project updated successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error updating project: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to update project'}), 500
+
+@app.route('/api/project/assign-crew', methods=['POST'])
+def assign_crew_to_project():
+    """API endpoint for assigning crew members to projects."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
     
-    # Use AI agent to process the quote request
-    if ai_agent:
-        try:
-            quote_query = f"Customer {data['name']} is requesting a quote for {data['service_type']}. Contact: {data['email']}, {data['phone']}"
-            if data.get('message'):
-                quote_query += f" Additional details: {data['message']}"
-            
-            ai_response = ai_agent.process_user_query(quote_query, {
-                'request_type': 'quote',
-                'customer_name': data['name'],
-                'service_type': data['service_type']
-            })
-            
-            # Add quote request to context manager
-            ai_agent.add_current_issue(
-                f"Quote request from {data['name']} for {data['service_type']}",
-                location="quote_system",
-                root_cause="customer_inquiry"
-            )
-            
-            logger.info(f"Quote request processed by AI agent: {ai_response.get('persona', {}).get('name', 'Unknown')}")
-            
-        except Exception as e:
-            logger.error(f"AI agent error during quote processing: {e}")
+    try:
+        data = request.get_json()
+        project_id = data.get('project_id')
+        crew_member = data.get('crew_member')
+        role = data.get('role')
+        
+        if not all([project_id, crew_member, role]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find project
+        project = Job.query.get(project_id)
+        if not project:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+        # Find crew member
+        crew = CrewMember.query.filter(CrewMember.full_name.ilike(f'%{crew_member}%')).first()
+        if not crew:
+            return jsonify({'success': False, 'error': 'Crew member not found'}), 404
+        
+        # Create assignment
+        assignment = JobCrewAssignment(
+            job_id=project_id,
+            crew_member_id=crew.id,
+            role=role,
+            assigned_date=datetime.now().date()
+        )
+        
+        db.session.add(assignment)
+        db.session.commit()
+        
+        logger.info(f"Crew member {crew_member} assigned to project {project.title}")
+        return jsonify({'success': True, 'message': 'Crew member assigned successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error assigning crew member: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to assign crew member'}), 500
+
+@app.route('/api/project/log-time', methods=['POST'])
+def log_project_time():
+    """API endpoint for logging time on projects."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
     
-    # Here you would typically:
-    # 1. Save the quote request to database
-    # 2. Send email notification
-    # 3. Calculate estimated pricing
+    try:
+        data = request.get_json()
+        project_id = data.get('project_id')
+        hours = data.get('hours')
+        description = data.get('description')
+        
+        if not all([project_id, hours, description]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find project
+        project = Job.query.get(project_id)
+        if not project:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+        # Create time entry
+        time_entry = JobTimeEntry(
+            job_id=project_id,
+            hours_worked=hours,
+            work_description=description,
+            date_worked=datetime.now().date()
+        )
+        
+        db.session.add(time_entry)
+        db.session.commit()
+        
+        logger.info(f"Time logged for project {project.title}: {hours} hours")
+        return jsonify({'success': True, 'message': 'Time logged successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error logging time: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to log time'}), 500
+
+@app.route('/api/crew/update', methods=['POST'])
+def update_crew_member():
+    """API endpoint for updating crew member status."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
     
-    return jsonify({
-        'success': True,
-        'message': 'Quote request received! We will contact you within 24 hours with a detailed estimate.',
-        'quote_id': 'Q' + str(hash(data['email']))[:8].upper()
-    })
+    try:
+        data = request.get_json()
+        crew_id = data.get('crew_id')
+        status = data.get('status')
+        
+        if not all([crew_id, status]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find crew member
+        crew = CrewMember.query.get(crew_id)
+        if not crew:
+            return jsonify({'success': False, 'error': 'Crew member not found'}), 404
+        
+        # Update crew member status
+        crew.is_active = (status == 'active')
+        
+        db.session.commit()
+        
+        logger.info(f"Crew member {crew.full_name} status updated to {status}")
+        return jsonify({'success': True, 'message': 'Crew member updated successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error updating crew member: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to update crew member'}), 500
+
+@app.route('/api/crew/assign-project', methods=['POST'])
+def assign_crew_to_project_from_crew():
+    """API endpoint for assigning crew members to projects from crew page."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        data = request.get_json()
+        crew_id = data.get('crew_id')
+        project = data.get('project')
+        
+        if not all([crew_id, project]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find crew member
+        crew = CrewMember.query.get(crew_id)
+        if not crew:
+            return jsonify({'success': False, 'error': 'Crew member not found'}), 404
+        
+        # Find project by name
+        job = Job.query.filter(Job.title.ilike(f'%{project}%')).first()
+        if not job:
+            return jsonify({'success': False, 'error': 'Project not found'}), 404
+        
+        # Create assignment
+        assignment = JobCrewAssignment(
+            job_id=job.id,
+            crew_member_id=crew_id,
+            role='laborer',  # Default role
+            assigned_date=datetime.now().date()
+        )
+        
+        db.session.add(assignment)
+        db.session.commit()
+        
+        logger.info(f"Crew member {crew.full_name} assigned to project {job.title}")
+        return jsonify({'success': True, 'message': 'Crew member assigned successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error assigning crew member: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to assign crew member'}), 500
+
+# Materials API Routes
+@app.route('/api/materials/add', methods=['POST'])
+def add_material():
+    """Add a new material to the database."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        data = request.get_json()
+    
+        # Validate required fields
+        required_fields = ['name', 'material_type']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Create new material
+        material = Material(
+            name=data['name'],
+            material_type=data['material_type'],
+            description=data.get('description', ''),
+            unit_of_measure=data.get('unit_of_measure', ''),
+            cost_per_unit=float(data.get('cost_per_unit', 0)),
+            supplier=data.get('supplier', ''),
+            supplier_contact=data.get('supplier_contact', ''),
+            notes=data.get('notes', '')
+        )
+        
+        db.session.add(material)
+        db.session.commit()
+        
+        logger.info(f"Added new material: {material.name}")
+        return jsonify({'success': True, 'message': 'Material added successfully', 'material_id': str(material.id)})
+        
+    except Exception as e:
+        logger.error(f"Error adding material: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to add material'}), 500
+
+@app.route('/api/materials/edit/<material_id>', methods=['POST'])
+def edit_material(material_id):
+    """Edit an existing material."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        material = Material.query.get(material_id)
+        if not material:
+            return jsonify({'success': False, 'error': 'Material not found'}), 404
+        
+        data = request.get_json()
+        
+        # Update material fields
+        material.name = data.get('name', material.name)
+        material.material_type = data.get('material_type', material.material_type)
+        material.description = data.get('description', material.description)
+        material.unit_of_measure = data.get('unit_of_measure', material.unit_of_measure)
+        material.cost_per_unit = float(data.get('cost_per_unit', material.cost_per_unit))
+        material.supplier = data.get('supplier', material.supplier)
+        material.supplier_contact = data.get('supplier_contact', material.supplier_contact)
+        material.notes = data.get('notes', material.notes)
+        
+        db.session.commit()
+        
+        logger.info(f"Updated material: {material.name}")
+        return jsonify({'success': True, 'message': 'Material updated successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error updating material: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to update material'}), 500
+
+@app.route('/api/materials/delete/<material_id>', methods=['POST'])
+def delete_material(material_id):
+    """Delete a material (soft delete by setting is_active to False)."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        material = Material.query.get(material_id)
+        if not material:
+            return jsonify({'success': False, 'error': 'Material not found'}), 404
+        
+        # Soft delete - set is_active to False
+        material.is_active = False
+        db.session.commit()
+        
+        logger.info(f"Deleted material: {material.name}")
+        return jsonify({'success': True, 'message': 'Material deleted successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error deleting material: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to delete material'}), 500
 
 @app.route('/api/chat', methods=['POST'])
 def ai_chat():
@@ -342,75 +635,194 @@ def context_summary():
             'error': 'Failed to get context summary'
         }), 500
 
-@app.route('/api/services')
-def api_services():
-    """API endpoint for services data."""
-    services = [
-        {
-            'id': 'lawn_care',
-            'name': 'Lawn Care',
-            'description': 'Regular maintenance and care for your lawn',
-            'icon': '🌿',
-            'price_range': '$50-200/month'
-        },
-        {
-            'id': 'tree_services',
-            'name': 'Tree Services',
-            'description': 'Professional tree care and maintenance',
-            'icon': '🌳',
-            'price_range': '$75-500/tree'
-        },
-        {
-            'id': 'garden_design',
-            'name': 'Garden Design',
-            'description': 'Custom landscape design and installation',
-            'icon': '🌺',
-            'price_range': '$500-5000/project'
-        },
-        {
-            'id': 'cleanup',
-            'name': 'Cleanup Services',
-            'description': 'Seasonal cleanup and maintenance',
-            'icon': '🧹',
-            'price_range': '$100-300/visit'
-        }
-    ]
-    return jsonify(services)
+@app.route('/api/equipment/status')
+def equipment_status():
+    """API endpoint for equipment status data."""
+    if not db:
+        return jsonify([])
+    
+    try:
+        equipment = Equipment.query.filter(Equipment.is_active == True).all()
+        return jsonify([eq.to_dict() for eq in equipment])
+    except Exception as e:
+        logger.error(f"Error getting equipment: {e}")
+        return jsonify([])
+
+@app.route('/api/equipment/checkout', methods=['POST'])
+def equipment_checkout():
+    """API endpoint for checking out equipment."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equipment_id')
+        crew_member = data.get('crew_member')
+        project = data.get('project')
+        
+        if not all([equipment_id, crew_member, project]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find equipment
+        equipment = Equipment.query.get(equipment_id)
+        if not equipment:
+            return jsonify({'success': False, 'error': 'Equipment not found'}), 404
+        
+        # Update equipment status
+        equipment.status = 'in_use'
+        equipment.current_location = f"Project {project}"
+        equipment.assigned_to = crew_member
+        
+        db.session.commit()
+        
+        logger.info(f"Equipment {equipment.name} checked out to {crew_member} for {project}")
+        return jsonify({'success': True, 'message': 'Equipment checked out successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error checking out equipment: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to check out equipment'}), 500
+
+@app.route('/api/equipment/checkin', methods=['POST'])
+def equipment_checkin():
+    """API endpoint for checking in equipment."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equipment_id')
+        
+        if not equipment_id:
+            return jsonify({'success': False, 'error': 'Missing equipment ID'}), 400
+        
+        # Find equipment
+        equipment = Equipment.query.get(equipment_id)
+        if not equipment:
+            return jsonify({'success': False, 'error': 'Equipment not found'}), 404
+        
+        # Update equipment status
+        equipment.status = 'available'
+        equipment.current_location = 'Shop'
+        equipment.assigned_to = None
+        
+        db.session.commit()
+        
+        logger.info(f"Equipment {equipment.name} checked in")
+        return jsonify({'success': True, 'message': 'Equipment checked in successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error checking in equipment: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to check in equipment'}), 500
+
+@app.route('/api/equipment/repair', methods=['POST'])
+def equipment_repair():
+    """API endpoint for marking equipment as repaired."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equipment_id')
+        notes = data.get('notes', '')
+        
+        if not equipment_id:
+            return jsonify({'success': False, 'error': 'Missing equipment ID'}), 400
+        
+        # Find equipment
+        equipment = Equipment.query.get(equipment_id)
+        if not equipment:
+            return jsonify({'success': False, 'error': 'Equipment not found'}), 404
+        
+        # Update equipment status
+        equipment.status = 'available'
+        equipment.maintenance_notes = notes
+        equipment.needs_maintenance = False
+        
+        db.session.commit()
+        
+        logger.info(f"Equipment {equipment.name} marked as repaired")
+        return jsonify({'success': True, 'message': 'Equipment marked as repaired'})
+        
+    except Exception as e:
+        logger.error(f"Error updating equipment repair status: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to update equipment status'}), 500
+
+@app.route('/api/equipment/maintenance', methods=['POST'])
+def equipment_maintenance():
+    """API endpoint for scheduling equipment maintenance."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 503
+    
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equipment_id')
+        date = data.get('date')
+        notes = data.get('notes', '')
+        
+        if not all([equipment_id, date]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find equipment
+        equipment = Equipment.query.get(equipment_id)
+        if not equipment:
+            return jsonify({'success': False, 'error': 'Equipment not found'}), 404
+        
+        # Update maintenance schedule
+        equipment.next_maintenance_date = date
+        equipment.maintenance_notes = notes
+        equipment.needs_maintenance = True
+        
+        db.session.commit()
+        
+        logger.info(f"Maintenance scheduled for equipment {equipment.name} on {date}")
+        return jsonify({'success': True, 'message': 'Maintenance scheduled successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error scheduling maintenance: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to schedule maintenance'}), 500
 
 @app.route('/api/materials')
 def api_materials():
     """API endpoint for materials data."""
-    if not materials_calculator:
-        return jsonify({
-            'success': False,
-            'error': 'Materials calculator not available'
-        }), 503
+    if not db:
+        return jsonify([])
     
     try:
-        materials = materials_calculator.get_all_materials()
-        materials_dict = {}
-        
-        for material in materials:
-            # Convert material to dictionary format
-            material_id = material.name.lower().replace(' ', '_').replace('-', '_').replace('(', '').replace(')', '')
-            materials_dict[material_id] = {
-                'name': material.name,
-                'type': material.material_type.value,
-                'dimensions': f"{material.length}\" x {material.width}\" x {material.height}\"",
-                'weight': material.weight,
-                'price': material.price_per_unit,
-                'description': material.description,
-                'use_case': material.use_case,
-                'installation_notes': material.installation_notes
-            }
-        
-        return jsonify(materials_dict)
+        materials = Material.query.filter(Material.is_active == True).all()
+        return jsonify([material.to_dict() for material in materials])
     except Exception as e:
         logger.error(f"Error getting materials: {e}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to get materials data'
-        }), 500
+        return jsonify([])
+
+@app.route('/api/projects')
+def api_projects():
+    """API endpoint for projects data."""
+    if not db:
+        return jsonify([])
+    
+    try:
+        projects = Job.query.all()
+        return jsonify([project.to_dict() for project in projects])
+    except Exception as e:
+        logger.error(f"Error getting projects: {e}")
+        return jsonify([])
+
+@app.route('/api/crew')
+def api_crew():
+    """API endpoint for crew data."""
+    if not db:
+        return jsonify([])
+    
+    try:
+        crew = CrewMember.query.all()
+        return jsonify([member.to_dict() for member in crew])
+    except Exception as e:
+        logger.error(f"Error getting crew: {e}")
+        return jsonify([])
 
 @app.route('/api/calculate-materials', methods=['POST'])
 def api_calculate_materials():
@@ -433,6 +845,9 @@ def api_calculate_materials():
                     'error': f'Missing required field: {field}'
                 }), 400
         
+        # Ensure materials are loaded from database
+        materials_calculator._ensure_materials_loaded()
+        
         # Calculate materials
         result = materials_calculator.calculate_wall_materials(
             wall_length=float(data['wall_length']),
@@ -443,7 +858,7 @@ def api_calculate_materials():
         )
         
         # Log the calculation for AI agent context
-        if ai_agent:
+        if ai_agent and hasattr(ai_agent, 'add_conversation_entry'):
             calculation_summary = f"Wall calculation: {data['wall_length']}' x {data['wall_height']}' using {data['material_id']}, estimated cost: ${result['total_estimated_cost']}"
             ai_agent.add_conversation_entry(
                 role="system",

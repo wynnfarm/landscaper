@@ -1,5 +1,4 @@
-{% extends "base.html" %} {% block title %}Landscaper - Professional Landscaping Services{% endblock %} {% block content
-%}
+{% extends "base.html" %} {% block title %}Landscaper Staff Dashboard{% endblock %} {% block content %}
 <div class="main-content">
   <!-- Hero Section -->
   <section
@@ -13,71 +12,67 @@
       text-align: center;
     "
   >
-    <h2 style="font-size: 28px; margin-bottom: 16px; font-weight: 600">Transform Your Outdoor Space</h2>
-    <p style="font-size: 18px; margin-bottom: 24px; opacity: 0.9">
-      Professional landscaping services to create the garden of your dreams
-    </p>
-    <a
-      href="/contact"
-      class="btn btn-primary"
-      style="background: white; color: #2c5530; max-width: 200px; margin: 0 auto"
-      >Get Free Quote</a
-    >
+    <h2 style="font-size: 28px; margin-bottom: 16px; font-weight: 600">Staff Dashboard</h2>
+    <p style="font-size: 18px; margin-bottom: 24px; opacity: 0.9">Tools and resources for landscape professionals</p>
+    <div class="grid grid-2" style="max-width: 400px; margin: 0 auto">
+      <a href="/projects" class="btn btn-primary" style="background: white; color: #2c5530">📋 Projects</a>
+      <a href="/calculator" class="btn btn-primary" style="background: white; color: #2c5530">🧮 Calculator</a>
+    </div>
   </section>
 
-  <!-- Services Overview -->
-  <section class="services-overview mb-3">
-    <h3 class="card-title text-center mb-2">Our Services</h3>
+  <!-- Staff Tools Overview -->
+  <section class="tools-overview mb-3">
+    <h3 class="card-title text-center mb-2">Staff Tools</h3>
     <div class="grid grid-2">
       <div class="card">
         <div class="card-header">
-          <h4 style="color: #2c5530; margin-bottom: 8px">🌿 Lawn Care</h4>
-          <p class="text-muted">Regular maintenance and care for your lawn</p>
+          <h4 style="color: #2c5530; margin-bottom: 8px">📋 Project Management</h4>
+          <p class="text-muted">Track active and completed projects</p>
         </div>
         <ul style="list-style: none; padding: 0">
-          <li style="padding: 4px 0">✓ Mowing & Edging</li>
-          <li style="padding: 4px 0">✓ Fertilization</li>
-          <li style="padding: 4px 0">✓ Weed Control</li>
-          <li style="padding: 4px 0">✓ Aeration</li>
+          <li style="padding: 4px 0">✓ Active Projects</li>
+          <li style="padding: 4px 0">✓ Project Status</li>
+          <li style="padding: 4px 0">✓ Crew Assignments</li>
+          <li style="padding: 4px 0">✓ Timeline Tracking</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <h4 style="color: #2c5530; margin-bottom: 8px">🌳 Tree Services</h4>
-          <p class="text-muted">Professional tree care and maintenance</p>
+          <h4 style="color: #2c5530; margin-bottom: 8px">🧮 Materials Calculator</h4>
+          <p class="text-muted">Calculate materials for walls and projects</p>
         </div>
         <ul style="list-style: none; padding: 0">
-          <li style="padding: 4px 0">✓ Pruning & Trimming</li>
-          <li style="padding: 4px 0">✓ Tree Removal</li>
-          <li style="padding: 4px 0">✓ Stump Grinding</li>
-          <li style="padding: 4px 0">✓ Disease Treatment</li>
+          <li style="padding: 4px 0">✓ Wall Materials</li>
+          <li style="padding: 4px 0">✓ Cost Estimation</li>
+          <li style="padding: 4px 0">✓ Material Lists</li>
+          <li style="padding: 4px 0">✓ Project Planning</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <h4 style="color: #2c5530; margin-bottom: 8px">🌺 Garden Design</h4>
-          <p class="text-muted">Custom landscape design and installation</p>
+          <h4 style="color: #2c5530; margin-bottom: 8px">👥 Crew Management</h4>
+          <p class="text-muted">Manage staff schedules and assignments</p>
         </div>
         <ul style="list-style: none; padding: 0">
-          <li style="padding: 4px 0">✓ Landscape Planning</li>
-          <li style="padding: 4px 0">✓ Plant Selection</li>
-          <li style="padding: 4px 0">✓ Hardscaping</li>
-          <li style="padding: 4px 0">✓ Irrigation Systems</li>
+          <li style="padding: 4px 0">✓ Staff Schedules</li>
+          <li style="padding: 4px 0">✓ Project Assignments</li>
+          <li style="padding: 4px 0">✓ Contact Info</li>
+          <li style="padding: 4px 0">✓ Status Updates</li>
         </ul>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <h4 style="color: #2c5530; margin-bottom: 8px">🧹 Cleanup</h4>
-          <p class="text-muted">Seasonal cleanup and maintenance</p>
+          <h4 style="color: #2c5530; margin-bottom: 8px">🔧 Equipment Tracking</h4>
+          <p class="text-muted">Monitor tools and equipment status</p>
         </div>
         <ul style="list-style: none; padding: 0">
-          <li style="padding: 4px 0">✓ Spring Cleanup</li>
-          <li style="padding: 4px 0">✓ Fall Leaf Removal</li>
-          <li style="padding: 4px 0">✓ Debris Removal</li>
-          <li style="padding: 4px 0">✓ Mulching</li>
+          <li style="padding: 4px 0">✓ Equipment Status</li>
+          <li style="padding: 4px 0">✓ Maintenance Schedules</li>
+          <li style="padding: 4px 0">✓ Location Tracking</li>
+          <li style="padding: 4px 0">✓ Issue Reporting</li>
         </ul>
       </div>
     </div>
@@ -87,42 +82,317 @@
   <section class="quick-actions mb-3">
     <h3 class="card-title text-center mb-2">Quick Actions</h3>
     <div class="grid grid-2">
-      <button class="btn btn-primary" data-action="call" data-phone="555-0123">📞 Call Now</button>
-      <button class="btn btn-outline" data-action="email" data-email="info@landscaper.com">✉️ Email Us</button>
-      <button class="btn btn-outline" data-action="location" data-address="123 Garden St, City, State">
-        📍 Find Us
-      </button>
-      <button class="btn btn-secondary" data-action="share">📤 Share</button>
+      <a href="/projects" class="btn btn-primary">📋 View Projects</a>
+      <a href="/calculator" class="btn btn-outline">🧮 Calculate Materials</a>
+      <a href="/crew" class="btn btn-outline">👥 Crew Status</a>
+      <a href="/tools" class="btn btn-secondary">🔧 Equipment</a>
     </div>
   </section>
 
-  <!-- Why Choose Us -->
-  <section class="why-choose-us">
+  <!-- Today's Tasks -->
+  <section class="mb-3">
+    <h3 class="card-title">Today's Tasks</h3>
+    <div class="task-list">
+      <div class="card task-card">
+        <div class="task-header">
+          <h4 style="color: #2c5530; margin-bottom: 4px">Check Equipment Status</h4>
+          <span class="priority-badge priority-high">High</span>
+        </div>
+        <p class="text-muted">Verify all equipment is ready for today's projects</p>
+        <button class="btn btn-primary btn-sm" onclick="checkEquipmentStatus()">Check Now</button>
+      </div>
+
+      <div class="card task-card">
+        <div class="task-header">
+          <h4 style="color: #2c5530; margin-bottom: 4px">Update Project Status</h4>
+          <span class="priority-badge priority-medium">Medium</span>
+        </div>
+        <p class="text-muted">Review and update active project statuses</p>
+        <button class="btn btn-outline btn-sm" onclick="window.location.href='/projects'">View Projects</button>
+      </div>
+
+      <div class="card task-card">
+        <div class="task-header">
+          <h4 style="color: #2c5530; margin-bottom: 4px">Crew Check-in</h4>
+          <span class="priority-badge priority-high">High</span>
+        </div>
+        <p class="text-muted">Confirm crew assignments and availability</p>
+        <button class="btn btn-outline btn-sm" onclick="window.location.href='/crew'">Manage Crew</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Today's Summary -->
+  <section class="daily-summary">
     <div class="card">
-      <h3 class="card-title text-center mb-2">Why Choose Landscaper?</h3>
+      <h3 class="card-title text-center mb-2">Today's Summary</h3>
       <div class="grid grid-2">
         <div class="text-center">
-          <div style="font-size: 32px; margin-bottom: 8px">⭐</div>
-          <h4 style="color: #2c5530; margin-bottom: 8px">5-Star Rated</h4>
-          <p class="text-muted">Over 500 satisfied customers</p>
+          <div style="font-size: 32px; margin-bottom: 8px">📅</div>
+          <h4 style="color: #2c5530; margin-bottom: 8px">Active Projects</h4>
+          <p class="text-muted">2 projects in progress</p>
         </div>
         <div class="text-center">
-          <div style="font-size: 32px; margin-bottom: 8px">🏆</div>
-          <h4 style="color: #2c5530; margin-bottom: 8px">Licensed & Insured</h4>
-          <p class="text-muted">Fully certified professionals</p>
+          <div style="font-size: 32px; margin-bottom: 8px">👥</div>
+          <h4 style="color: #2c5530; margin-bottom: 8px">Crew Members</h4>
+          <p class="text-muted">3 staff on duty</p>
         </div>
         <div class="text-center">
-          <div style="font-size: 32px; margin-bottom: 8px">⏰</div>
-          <h4 style="color: #2c5530; margin-bottom: 8px">On-Time Service</h4>
-          <p class="text-muted">Reliable scheduling and delivery</p>
+          <div style="font-size: 32px; margin-bottom: 8px">🔧</div>
+          <h4 style="color: #2c5530; margin-bottom: 8px">Equipment Status</h4>
+          <p class="text-muted">1 item needs maintenance</p>
         </div>
         <div class="text-center">
-          <div style="font-size: 32px; margin-bottom: 8px">💰</div>
-          <h4 style="color: #2c5530; margin-bottom: 8px">Fair Pricing</h4>
-          <p class="text-muted">Competitive rates and free quotes</p>
+          <div style="font-size: 32px; margin-bottom: 8px">☀️</div>
+          <h4 style="color: #2c5530; margin-bottom: 8px">Weather</h4>
+          <p class="text-muted">Sunny, 75°F</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daily Performance Metrics -->
+  <section class="performance-metrics">
+    <div class="card">
+      <h3 class="card-title">📈 Daily Performance Metrics</h3>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-icon">⏱️</div>
+          <div class="metric-data">
+            <span class="metric-value">7.5</span>
+            <span class="metric-label">Avg Hours/Project</span>
+          </div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-icon">💰</div>
+          <div class="metric-data">
+            <span class="metric-value">$2,850</span>
+            <span class="metric-label">Daily Revenue</span>
+          </div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-icon">✅</div>
+          <div class="metric-data">
+            <span class="metric-value">98%</span>
+            <span class="metric-label">On-time Completion</span>
+          </div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-icon">🎯</div>
+          <div class="metric-data">
+            <span class="metric-value">4.8/5</span>
+            <span class="metric-label">Customer Rating</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Activity & Alerts -->
+  <section class="activity-alerts">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 class="card-title">🔔 Recent Alerts</h3>
+        <div class="alert-list">
+          <div class="alert-item alert-warning">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-content">
+              <p><strong>Equipment Alert</strong></p>
+              <small>Excavator needs maintenance check</small>
+            </div>
+          </div>
+          <div class="alert-item alert-info">
+            <span class="alert-icon">📦</span>
+            <div class="alert-content">
+              <p><strong>Material Restock</strong></p>
+              <small>Concrete blocks running low</small>
+            </div>
+          </div>
+          <div class="alert-item alert-success">
+            <span class="alert-icon">✅</span>
+            <div class="alert-content">
+              <p><strong>Project Complete</strong></p>
+              <small>Johnson Residence finished</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">📋 Quick Actions</h3>
+        <div class="quick-actions-list">
+          <button class="action-btn" onclick="window.location.href='/projects'">
+            <span class="action-icon">📁</span>
+            <span>View All Projects</span>
+          </button>
+          <button class="action-btn" onclick="window.location.href='/crew'">
+            <span class="action-icon">👥</span>
+            <span>Manage Crew</span>
+          </button>
+          <button class="action-btn" onclick="window.location.href='/materials'">
+            <span class="action-icon">📦</span>
+            <span>Check Inventory</span>
+          </button>
+          <button class="action-btn" onclick="window.location.href='/tools'">
+            <span class="action-icon">🔧</span>
+            <span>Equipment Status</span>
+          </button>
         </div>
       </div>
     </div>
   </section>
 </div>
+
+<style>
+  .task-card {
+    margin-bottom: 16px;
+    border-left: 4px solid #2c5530;
+  }
+
+  .task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .task-header h4 {
+    margin: 0;
+    flex: 1;
+  }
+
+  .priority-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .priority-high {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .priority-medium {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .priority-low {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  /* Performance Metrics Styles */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .metric-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #2c5530;
+  }
+
+  .metric-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+
+  .metric-data {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #2c5530;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+  }
+
+  /* Activity & Alerts Styles */
+  .alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .alert-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 4px solid;
+  }
+
+  .alert-warning {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+  }
+
+  .alert-info {
+    background: #d1ecf1;
+    border-left-color: #17a2b8;
+  }
+
+  .alert-success {
+    background: #d4edda;
+    border-left-color: #28a745;
+  }
+
+  .alert-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+  }
+
+  .alert-content p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .alert-content small {
+    color: #6c757d;
+  }
+
+  .quick-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    text-align: left;
+  }
+
+  .action-btn:hover {
+    background: #f8f9fa;
+    border-color: #2c5530;
+  }
+
+  .action-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+  }
+</style>
 {% endblock %}

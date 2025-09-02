@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Landscaper" />
 
-    <title>{% block title %}Landscaper - Professional Landscaping Services{% endblock %}</title>
+    <title>{% block title %}{{ page_title or 'Landscaper Staff Dashboard' }}{% endblock %}</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
@@ -26,7 +26,10 @@
     <!-- Header -->
     <header class="header">
       <div class="container">
-        <h1>{% block header_title %}🌿 Landscaper{% endblock %}</h1>
+        <h1>{% block header_title %}{{ page_header or '🌿 Landscaper Staff' }}{% endblock %}</h1>
+        {% if page_subtitle %}
+        <p class="page-subtitle">{{ page_subtitle }}</p>
+        {% endif %}
       </div>
     </header>
 
@@ -35,24 +38,31 @@
       <div class="container">
         <ul class="nav-list">
           <li class="nav-item">
-            <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"> 🏠 Home </a>
+            <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"> 🏠 Dashboard </a>
           </li>
           <li class="nav-item">
-            <a href="/services" class="nav-link {% if request.endpoint == 'services' %}active{% endif %}">
-              🌱 Services
+            <a href="/projects" class="nav-link {% if request.endpoint == 'projects' %}active{% endif %}">
+              📋 Projects
             </a>
           </li>
           <li class="nav-item">
-            <a href="/gallery" class="nav-link {% if request.endpoint == 'gallery' %}active{% endif %}"> 📸 Gallery </a>
+            <a href="/crew" class="nav-link {% if request.endpoint == 'crew' %}active{% endif %}"> 👥 Crew </a>
           </li>
           <li class="nav-item">
-            <a href="/contact" class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}"> 📞 Contact </a>
+            <a href="/tools" class="nav-link {% if request.endpoint == 'tools' %}active{% endif %}"> 🔧 Tools </a>
+          </li>
+          <li class="nav-item">
+            <a href="/materials" class="nav-link {% if request.endpoint == 'materials' %}active{% endif %}">
+              📦 Materials
+            </a>
           </li>
           <li class="nav-item">
             <a href="/chat" class="nav-link {% if request.endpoint == 'chat' %}active{% endif %}"> 🤖 AI Chat </a>
           </li>
           <li class="nav-item">
-            <a href="/calculator" class="nav-link {% if request.endpoint == 'calculator' %}active{% endif %}"> 🧮 Calculator </a>
+            <a href="/calculator" class="nav-link {% if request.endpoint == 'calculator' %}active{% endif %}">
+              🧮 Calculator
+            </a>
           </li>
         </ul>
       </div>
@@ -66,9 +76,9 @@
     <!-- Footer -->
     <footer class="footer" style="background: #2c5530; color: white; padding: 20px 0; margin-top: 40px">
       <div class="container text-center">
-        <p>&copy; 2024 Landscaper. All rights reserved.</p>
+        <p>&copy; 2024 Landscaper Staff Portal. All rights reserved.</p>
         <p class="text-muted" style="color: #a0a0a0; font-size: 14px; margin-top: 8px">
-          Professional landscaping services for your home and business
+          Staff tools and resources for landscape professionals
         </p>
       </div>
     </footer>
