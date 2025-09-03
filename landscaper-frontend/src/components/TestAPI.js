@@ -5,7 +5,14 @@ const TestAPI = () => {
 
   useEffect(() => {
     const testEndpoints = async () => {
-      const endpoints = ["/api/materials", "/api/projects", "/api/crew", "/api/equipment/status"];
+      const endpoints = [
+        "/api/materials",
+        "/api/projects",
+        "/api/crew",
+        "/api/equipment",
+        "/api/jobs",
+        "/api/job-calculator/types",
+      ];
 
       const testResults = {};
 

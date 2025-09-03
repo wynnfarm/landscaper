@@ -138,9 +138,16 @@ dmypy.json
 *.swo
 *~
 
-# Project specific
-config.ini
-*.db
-*.sqlite
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate.*
+terraform/.terraform.tfstate.lock.info
+terraform/crash.log
+terraform/crash.*.log
+terraform/*.tfvars
+!terraform/terraform.tfvars.example
 
 

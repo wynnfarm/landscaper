@@ -14,6 +14,16 @@ const ProjectsManagement = () => {
   });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [projectJobs, setProjectJobs] = useState({});
+  const [showJobsModal, setShowJobsModal] = useState(false);
+  const [selectedProjectJobs, setSelectedProjectJobs] = useState([]);
+  const [showEditJobModal, setShowEditJobModal] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
+  const [editJobFormData, setEditJobFormData] = useState({
+    name: "",
+    description: "",
+    status: "planned",
+  });
 
   // Fetch projects from API
   const fetchProjects = async () => {
@@ -175,9 +185,20 @@ const ProjectsManagement = () => {
         } else {
           console.error("Failed to remove material");
         }
+      } else if (confirmAction.type === "delete_job") {
+        const response = await fetch(`/api/jobs/${confirmAction.job.id}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          await fetchProjectJobs(confirmAction.job.project_id);
+          alert("Job deleted successfully!");
+        } else {
+          console.error("Failed to delete job");
+        }
       }
     } catch (error) {
-      console.error("Error removing material:", error);
+      console.error("Error performing action:", error);
     } finally {
       setShowConfirmModal(false);
       setConfirmAction(null);
@@ -187,6 +208,119 @@ const ProjectsManagement = () => {
   const getTotalMaterialsCost = (materials) => {
     if (!materials || !Array.isArray(materials)) return 0;
     return materials.reduce((sum, material) => sum + (material.total_cost || 0), 0);
+  };
+
+  // Job Management Functions
+  const fetchProjectJobs = async (projectId) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/jobs`);
+      if (response.ok) {
+        const jobs = await response.json();
+        setProjectJobs((prev) => ({ ...prev, [projectId]: jobs }));
+        return jobs;
+      } else {
+        console.error("Failed to fetch project jobs");
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching project jobs:", error);
+      return [];
+    }
+  };
+
+  const handleViewJobs = async (project) => {
+    setSelectedProject(project);
+    const jobs = await fetchProjectJobs(project.id);
+    setSelectedProjectJobs(jobs);
+    setShowJobsModal(true);
+  };
+
+  const handleEditJob = (job) => {
+    setEditingJob(job);
+    setEditJobFormData({
+      name: job.name,
+      description: job.description,
+      status: job.status,
+    });
+    setShowEditJobModal(true);
+  };
+
+  const handleEditJobFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditJobFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveJob = async () => {
+    try {
+      const response = await fetch(`/api/jobs/${editingJob.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editJobFormData),
+      });
+
+      if (response.ok) {
+        await fetchProjectJobs(editingJob.project_id);
+        setShowEditJobModal(false);
+        setEditingJob(null);
+        alert("Job updated successfully!");
+      } else {
+        console.error("Failed to update job");
+      }
+    } catch (error) {
+      console.error("Error updating job:", error);
+    }
+  };
+
+  const handleRecalculateJob = async (job) => {
+    try {
+      const response = await fetch(`/api/jobs/${job.id}/recalculate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          await fetchProjectJobs(job.project_id);
+          alert("Job recalculated successfully!");
+        } else {
+          alert("Failed to recalculate job: " + data.error);
+        }
+      } else {
+        console.error("Failed to recalculate job");
+      }
+    } catch (error) {
+      console.error("Error recalculating job:", error);
+    }
+  };
+
+  const handleDeleteJob = async (job) => {
+    setConfirmAction({
+      type: "delete_job",
+      job,
+      message: "Are you sure you want to delete this job?",
+    });
+    setShowConfirmModal(true);
+  };
+
+  const getJobStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+        return "#28a745";
+      case "in_progress":
+        return "#ffc107";
+      case "planned":
+        return "#17a2b8";
+      default:
+        return "#6c757d";
+    }
   };
 
   const getMaterialsCount = (materials) => {
@@ -261,6 +395,9 @@ const ProjectsManagement = () => {
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                      <button className="btn btn-sm btn-info" onClick={() => handleViewJobs(project)}>
+                        🏗️ Jobs ({projectJobs[project.id]?.length || 0})
+                      </button>
                       <select
                         value={project.status}
                         onChange={(e) => handleStatusUpdate(project.id, e.target.value)}
@@ -330,6 +467,9 @@ const ProjectsManagement = () => {
                 <span className="mobile-card-label">Actions:</span>
                 <span className="mobile-card-value">
                   <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                    <button className="btn btn-sm btn-info" onClick={() => handleViewJobs(project)}>
+                      🏗️ Jobs ({projectJobs[project.id]?.length || 0})
+                    </button>
                     <select
                       value={project.status}
                       onChange={(e) => handleStatusUpdate(project.id, e.target.value)}
@@ -539,6 +679,244 @@ const ProjectsManagement = () => {
                 💾 Save Changes
               </button>
               <button className="btn btn-secondary" onClick={() => setShowEditModal(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Jobs Modal */}
+      {showJobsModal && selectedProject && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "2rem",
+              borderRadius: "8px",
+              maxWidth: "800px",
+              width: "90%",
+              maxHeight: "80vh",
+              overflow: "auto",
+            }}
+          >
+            <h3 style={{ margin: "0 0 1rem 0" }}>🏗️ Jobs for {selectedProject.name}</h3>
+
+            {selectedProjectJobs.length > 0 ? (
+              <div>
+                <div className="table-container">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Job Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Area</th>
+                        <th>Materials</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedProjectJobs.map((job) => (
+                        <tr key={job.id}>
+                          <td>{job.name}</td>
+                          <td>{job.job_type}</td>
+                          <td>
+                            <span className="status-badge" style={{ backgroundColor: getJobStatusColor(job.status) }}>
+                              {job.status}
+                            </span>
+                          </td>
+                          <td>
+                            {job.calculation_result?.area_sqft ? `${job.calculation_result.area_sqft} sq ft` : "N/A"}
+                          </td>
+                          <td>
+                            {job.calculation_result?.materials
+                              ? Object.keys(job.calculation_result.materials).length + " types"
+                              : "N/A"}
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                              <button
+                                className="btn btn-sm btn-warning"
+                                onClick={() => handleRecalculateJob(job)}
+                                title="Recalculate job with current measurements"
+                              >
+                                🔄 Recalc
+                              </button>
+                              <button className="btn btn-sm btn-primary" onClick={() => handleEditJob(job)}>
+                                ✏️ Edit
+                              </button>
+                              <button className="btn btn-sm btn-danger" onClick={() => handleDeleteJob(job)}>
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Jobs Cards */}
+                <div className="mobile-cards">
+                  {selectedProjectJobs.map((job) => (
+                    <div key={job.id} className="mobile-card">
+                      <div className="mobile-card-header">{job.name}</div>
+                      <div className="mobile-card-row">
+                        <span className="mobile-card-label">Type:</span>
+                        <span className="mobile-card-value">{job.job_type}</span>
+                      </div>
+                      <div className="mobile-card-row">
+                        <span className="mobile-card-label">Status:</span>
+                        <span className="mobile-card-value">
+                          <span className="status-badge" style={{ backgroundColor: getJobStatusColor(job.status) }}>
+                            {job.status}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="mobile-card-row">
+                        <span className="mobile-card-label">Area:</span>
+                        <span className="mobile-card-value">
+                          {job.calculation_result?.area_sqft ? `${job.calculation_result.area_sqft} sq ft` : "N/A"}
+                        </span>
+                      </div>
+                      <div className="mobile-card-row">
+                        <span className="mobile-card-label">Materials:</span>
+                        <span className="mobile-card-value">
+                          {job.calculation_result?.materials
+                            ? Object.keys(job.calculation_result.materials).length + " types"
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <div className="mobile-card-row">
+                        <span className="mobile-card-label">Actions:</span>
+                        <span className="mobile-card-value">
+                          <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                            <button className="btn btn-sm btn-warning" onClick={() => handleRecalculateJob(job)}>
+                              🔄 Recalc
+                            </button>
+                            <button className="btn btn-sm btn-primary" onClick={() => handleEditJob(job)}>
+                              ✏️ Edit
+                            </button>
+                            <button className="btn btn-sm btn-danger" onClick={() => handleDeleteJob(job)}>
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+                No jobs found for this project. Create jobs using the Job Calculator!
+              </div>
+            )}
+
+            <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem" }}>
+              <button className="btn btn-secondary" onClick={() => setShowJobsModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Job Modal */}
+      {showEditJobModal && editingJob && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "2rem",
+              borderRadius: "8px",
+              maxWidth: "500px",
+              width: "90%",
+            }}
+          >
+            <h3 style={{ margin: "0 0 1rem 0" }}>✏️ Edit Job: {editingJob.name}</h3>
+
+            <div>
+              <div className="form-group">
+                <label className="form-label">Job Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editJobFormData.name}
+                  onChange={handleEditJobFormChange}
+                  className="form-input"
+                  placeholder="Enter job name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea
+                  name="description"
+                  value={editJobFormData.description}
+                  onChange={handleEditJobFormChange}
+                  className="form-input"
+                  placeholder="Enter job description"
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <select
+                  name="status"
+                  value={editJobFormData.status}
+                  onChange={handleEditJobFormChange}
+                  className="form-select"
+                >
+                  <option value="planned">Planned</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="on_hold">On Hold</option>
+                </select>
+              </div>
+
+              <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "#f0f9ff", borderRadius: "8px" }}>
+                <strong>Job Details:</strong>
+                <br />
+                <small style={{ color: "#6b7280" }}>
+                  Type: {editingJob.job_type} | Area: {editingJob.calculation_result?.area_sqft || "N/A"} sq ft
+                </small>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem" }}>
+              <button className="btn btn-primary" onClick={handleSaveJob}>
+                💾 Save Changes
+              </button>
+              <button className="btn btn-secondary" onClick={() => setShowEditJobModal(false)}>
                 Cancel
               </button>
             </div>

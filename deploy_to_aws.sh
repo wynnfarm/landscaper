@@ -41,7 +41,7 @@ check_prerequisites() {
         exit 1
     fi
     
-    if ! aws sts get-caller-identity &> /dev/null; then
+    if ! aws sts get-caller-identity --output table &> /dev/null; then
         print_error "AWS credentials not configured. Run: aws configure"
         exit 1
     fi

@@ -14,6 +14,9 @@ from datetime import datetime, date
 from models import init_database, db
 from models import Material, MaterialType, Equipment, EquipmentStatus, CrewMember, CrewRole, Job, JobStatus, Client
 
+# Import job calculator
+from job_calculator_api import create_job_calculator_routes
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,6 +26,9 @@ CORS(app)  # Enable CORS for React frontend
 
 # Initialize database
 init_database(app)
+
+# Add job calculator routes
+create_job_calculator_routes(app)
 
 # API Routes
 @app.route('/api/materials')

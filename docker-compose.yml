@@ -10,8 +10,7 @@ services:
       POSTGRES_USER: landscaper_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-landscaper_password_2024}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
-    ports:
-      - "5433:5432"
+    # REMOVED: ports - database should not be exposed externally
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -29,8 +28,7 @@ services:
   landscaper-redis:
     image: redis:7-alpine
     container_name: landscaper-redis
-    ports:
-      - "6379:6379"
+    # REMOVED: ports - redis should not be exposed externally
     volumes:
       - redis_data:/data
     networks:
@@ -46,8 +44,7 @@ services:
   landscaper-web:
     build: .
     container_name: landscaper-web
-    ports:
-      - "5000:5000"
+    # REMOVED: ports - Flask should only be accessible through nginx
     environment:
       - DB_HOST=landscaper-db
       - DB_PORT=5432
@@ -83,8 +80,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@landscaper.local
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
       PGADMIN_CONFIG_SERVER_MODE: "False"
-    ports:
-      - "8080:80"
+    # REMOVED: ports - pgAdmin should not be exposed in production
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     networks:

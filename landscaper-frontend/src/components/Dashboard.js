@@ -17,7 +17,7 @@ const Dashboard = () => {
         const materialsData = (await materialsResponse.ok) ? await materialsResponse.json() : [];
 
         // Fetch equipment count
-        const equipmentResponse = await fetch("/api/equipment/status");
+        const equipmentResponse = await fetch("/api/equipment");
         const equipmentData = (await equipmentResponse.ok) ? await equipmentResponse.json() : [];
 
         // Fetch projects count

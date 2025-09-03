@@ -8,6 +8,7 @@ import Dashboard from "./components/Dashboard";
 import TestAPI from "./components/TestAPI";
 import MaterialsCalculator from "./components/MaterialsCalculator";
 import ProjectDesigner from "./components/ProjectDesigner";
+import JobCalculator from "./components/JobCalculator";
 
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -24,6 +25,8 @@ function App() {
         return <CrewManagement />;
       case "calculator":
         return <MaterialsCalculator />;
+      case "job-calculator":
+        return <JobCalculator />;
       case "designer":
         return <ProjectDesigner />;
       case "test":
@@ -70,6 +73,12 @@ function App() {
             onClick={() => setActiveTab("calculator")}
           >
             🧮 Calculator
+          </button>
+          <button
+            className={activeTab === "job-calculator" ? "nav-tab active" : "nav-tab"}
+            onClick={() => setActiveTab("job-calculator")}
+          >
+            🏗️ Job Calculator
           </button>
           <button
             className={activeTab === "designer" ? "nav-tab active" : "nav-tab"}
