@@ -3,9 +3,7 @@ import React, { useState, useEffect } from "react";
 const Dashboard = () => {
   const [stats, setStats] = useState({
     materials: 0,
-    equipment: 0,
     projects: 0,
-    crew: 0,
   });
   const [loading, setLoading] = useState(false);
 
@@ -16,23 +14,13 @@ const Dashboard = () => {
         const materialsResponse = await fetch("/api/materials");
         const materialsData = (await materialsResponse.ok) ? await materialsResponse.json() : [];
 
-        // Fetch equipment count
-        const equipmentResponse = await fetch("/api/equipment");
-        const equipmentData = (await equipmentResponse.ok) ? await equipmentResponse.json() : [];
-
         // Fetch projects count
         const projectsResponse = await fetch("/api/projects");
         const projectsData = (await projectsResponse.ok) ? await projectsResponse.json() : [];
 
-        // Fetch crew count
-        const crewResponse = await fetch("/api/crew");
-        const crewData = (await crewResponse.ok) ? await crewResponse.json() : [];
-
         setStats({
           materials: materialsData.length,
-          equipment: equipmentData.length,
           projects: projectsData.length,
-          crew: crewData.length,
         });
       } catch (error) {
         console.error("Error fetching dashboard stats:", error);
@@ -109,21 +97,6 @@ const Dashboard = () => {
             <div style={{ fontSize: "2rem", fontWeight: "bold" }}>{stats.projects}</div>
             <div>Projects</div>
           </div>
-
-          <div
-            className="stat-card"
-            style={{
-              background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-              color: "white",
-              padding: "1.5rem",
-              borderRadius: "12px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👥</div>
-            <div style={{ fontSize: "2rem", fontWeight: "bold" }}>{stats.crew}</div>
-            <div>Crew Members</div>
-          </div>
         </div>
 
         <div
@@ -137,9 +110,7 @@ const Dashboard = () => {
             <h3 style={{ marginBottom: "1rem", color: "#1f2937" }}>🚀 Quick Actions</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <button className="btn btn-primary">📦 Add New Material</button>
-              <button className="btn btn-secondary">🔧 Check Equipment Status</button>
               <button className="btn btn-success">🏗️ Create New Project</button>
-              <button className="btn btn-warning">👥 Assign Crew Member</button>
             </div>
           </div>
 

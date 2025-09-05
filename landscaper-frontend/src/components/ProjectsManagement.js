@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-const ProjectsManagement = () => {
+const ProjectsManagement = ({ navigateToJobCalculator, refreshTrigger }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -25,14 +25,50 @@ const ProjectsManagement = () => {
     status: "planned",
   });
 
+  // Debug logging function
+  const log = (message) => {
+    console.log(`[ProjectsManagement] ${message}`);
+  };
+
+  // Fetch jobs for all projects
+  const fetchAllProjectJobs = useCallback(async (projectsList) => {
+    try {
+      log(`🔄 Fetching jobs for ${projectsList.length} projects...`);
+      const jobsPromises = projectsList.map(async (project) => {
+        // Use client_id instead of project.id for the API call
+        const response = await fetch(`/api/projects/${project.client_id}/jobs`);
+        if (response.ok) {
+          const jobs = await response.json();
+          log(`✅ Project ${project.id} (client: ${project.client_id}): ${jobs.length} jobs fetched`);
+          return { projectId: project.id, jobs };
+        }
+        log(`❌ Project ${project.id}: Failed to fetch jobs`);
+        return { projectId: project.id, jobs: [] };
+      });
+
+      const jobsResults = await Promise.all(jobsPromises);
+      const jobsMap = {};
+      jobsResults.forEach(({ projectId, jobs }) => {
+        jobsMap[projectId] = jobs;
+      });
+      setProjectJobs(jobsMap);
+      log(`✅ Updated projectJobs state with ${Object.keys(jobsMap).length} projects`);
+    } catch (error) {
+      log(`❌ Error fetching project jobs: ${error}`);
+      console.error("Error fetching project jobs:", error);
+    }
+  }, []);
+
   // Fetch projects from API
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/projects");
       if (response.ok) {
         const data = await response.json();
         setProjects(data);
+        // Fetch jobs for all projects
+        await fetchAllProjectJobs(data);
       } else {
         console.error("Failed to fetch projects");
       }
@@ -41,11 +77,26 @@ const ProjectsManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchAllProjectJobs]);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
+
+  // Refresh jobs when component re-renders (e.g., after job updates)
+  useEffect(() => {
+    if (projects.length > 0) {
+      fetchAllProjectJobs(projects);
+    }
+  }, [projects, fetchAllProjectJobs]);
+
+  // Force refresh when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger > 0 && projects.length > 0) {
+      log("🔄 Forcing project jobs refresh due to refreshTrigger change");
+      fetchAllProjectJobs(projects);
+    }
+  }, [refreshTrigger, projects, fetchAllProjectJobs]);
 
   // Handle project status update
   const handleStatusUpdate = async (projectId, newStatus) => {
@@ -167,7 +218,7 @@ const ProjectsManagement = () => {
     setShowConfirmModal(true);
   };
 
-  const handleConfirmAction = async () => {
+  const executeConfirmAction = async () => {
     if (!confirmAction) return;
 
     try {
@@ -191,7 +242,15 @@ const ProjectsManagement = () => {
         });
 
         if (response.ok) {
-          await fetchProjectJobs(confirmAction.job.project_id);
+          // Find the project that contains this job to refresh its jobs
+          const project = projects.find((p) => p.client_id === confirmAction.job.client_id);
+          if (project) {
+            const updatedJobs = await fetchProjectJobs(project.id);
+            setProjectJobs((prev) => ({
+              ...prev,
+              [project.id]: updatedJobs,
+            }));
+          }
           alert("Job deleted successfully!");
         } else {
           console.error("Failed to delete job");
@@ -213,7 +272,14 @@ const ProjectsManagement = () => {
   // Job Management Functions
   const fetchProjectJobs = async (projectId) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/jobs`);
+      // Find the project to get its client_id
+      const project = projects.find((p) => p.id === projectId);
+      if (!project) {
+        console.error("Project not found:", projectId);
+        return [];
+      }
+
+      const response = await fetch(`/api/projects/${project.client_id}/jobs`);
       if (response.ok) {
         const jobs = await response.json();
         setProjectJobs((prev) => ({ ...prev, [projectId]: jobs }));
@@ -230,19 +296,22 @@ const ProjectsManagement = () => {
 
   const handleViewJobs = async (project) => {
     setSelectedProject(project);
-    const jobs = await fetchProjectJobs(project.id);
+    const jobs = projectJobs[project.id] || [];
     setSelectedProjectJobs(jobs);
     setShowJobsModal(true);
   };
 
   const handleEditJob = (job) => {
-    setEditingJob(job);
-    setEditJobFormData({
-      name: job.name,
+    // Navigate to job calculator with pre-filled data
+    const jobData = {
+      jobId: job.id,
+      jobType: job.job_type,
+      measurements: job.measurements,
+      name: job.title, // Use title instead of name
       description: job.description,
-      status: job.status,
-    });
-    setShowEditJobModal(true);
+      projectId: job.client_id, // Use client_id instead of project_id
+    };
+    navigateToJobCalculator(jobData);
   };
 
   const handleEditJobFormChange = (e) => {
@@ -264,7 +333,15 @@ const ProjectsManagement = () => {
       });
 
       if (response.ok) {
-        await fetchProjectJobs(editingJob.project_id);
+        // Find the project that contains this job to refresh its jobs
+        const project = projects.find((p) => p.client_id === editingJob.client_id);
+        if (project) {
+          const updatedJobs = await fetchProjectJobs(project.id);
+          setProjectJobs((prev) => ({
+            ...prev,
+            [project.id]: updatedJobs,
+          }));
+        }
         setShowEditJobModal(false);
         setEditingJob(null);
         alert("Job updated successfully!");
@@ -288,7 +365,15 @@ const ProjectsManagement = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          await fetchProjectJobs(job.project_id);
+          // Find the project that contains this job to refresh its jobs
+          const project = projects.find((p) => p.client_id === job.client_id);
+          if (project) {
+            const updatedJobs = await fetchProjectJobs(project.id);
+            setProjectJobs((prev) => ({
+              ...prev,
+              [project.id]: updatedJobs,
+            }));
+          }
           alert("Job recalculated successfully!");
         } else {
           alert("Failed to recalculate job: " + data.error);
@@ -732,7 +817,7 @@ const ProjectsManagement = () => {
                     <tbody>
                       {selectedProjectJobs.map((job) => (
                         <tr key={job.id}>
-                          <td>{job.name}</td>
+                          <td>{job.title}</td>
                           <td>{job.job_type}</td>
                           <td>
                             <span className="status-badge" style={{ backgroundColor: getJobStatusColor(job.status) }}>
@@ -774,7 +859,7 @@ const ProjectsManagement = () => {
                 <div className="mobile-cards">
                   {selectedProjectJobs.map((job) => (
                     <div key={job.id} className="mobile-card">
-                      <div className="mobile-card-header">{job.name}</div>
+                      <div className="mobile-card-header">{job.title}</div>
                       <div className="mobile-card-row">
                         <span className="mobile-card-label">Type:</span>
                         <span className="mobile-card-value">{job.job_type}</span>
@@ -953,7 +1038,7 @@ const ProjectsManagement = () => {
             <h3 style={{ margin: "0 0 1rem 0" }}>⚠️ Confirm Action</h3>
             <p style={{ margin: "0 0 1.5rem 0", color: "#6b7280" }}>{confirmAction.message}</p>
             <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-              <button className="btn btn-danger" onClick={handleConfirmAction}>
+              <button className="btn btn-danger" onClick={executeConfirmAction}>
                 ✅ Yes, Continue
               </button>
               <button className="btn btn-secondary" onClick={() => setShowConfirmModal(false)}>

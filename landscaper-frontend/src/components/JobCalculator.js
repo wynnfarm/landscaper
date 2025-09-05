@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./JobCalculator.css";
 
-const JobCalculator = () => {
+const JobCalculator = ({ editJobData, clearEditJobData, refreshProjectJobs }) => {
   const [jobTypes, setJobTypes] = useState([]);
   const [templates, setTemplates] = useState({});
   const [selectedJobType, setSelectedJobType] = useState("");
@@ -20,6 +20,18 @@ const JobCalculator = () => {
     fetchTemplates();
     fetchProjects();
   }, []);
+
+  // Handle edit job data when provided
+  useEffect(() => {
+    if (editJobData) {
+      setSelectedJobType(editJobData.jobType);
+      setMeasurements(editJobData.measurements || {});
+      setJobName(editJobData.name || "");
+      setJobDescription(editJobData.description || "");
+      setSelectedProject(editJobData.projectId || "");
+      setCalculationResult(null); // Clear previous calculation
+    }
+  }, [editJobData]);
 
   const fetchJobTypes = async () => {
     try {
@@ -126,20 +138,25 @@ const JobCalculator = () => {
     setError("");
 
     try {
-      const response = await fetch("/api/jobs", {
-        method: "POST",
+      const jobData = {
+        project_id: selectedProject,
+        name: jobName,
+        job_type: selectedJobType,
+        description: jobDescription,
+        measurements: measurements,
+        calculation_result: calculationResult,
+        status: "planned",
+      };
+
+      const url = editJobData ? `/api/jobs/${editJobData.jobId}` : "/api/jobs";
+      const method = editJobData ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          project_id: selectedProject,
-          name: jobName,
-          job_type: selectedJobType,
-          description: jobDescription,
-          measurements: measurements,
-          calculation_result: calculationResult,
-          status: "planned",
-        }),
+        body: JSON.stringify(jobData),
       });
 
       const data = await response.json();
@@ -152,12 +169,16 @@ const JobCalculator = () => {
         setCalculationResult(null);
         setSelectedJobType("");
         setMeasurements({});
-        alert("✅ Job saved to project successfully!");
+        if (editJobData) {
+          clearEditJobData(); // Clear edit mode
+          refreshProjectJobs(); // Refresh project jobs in ProjectsManagement
+        }
+        alert(`✅ Job ${editJobData ? "updated" : "saved"} successfully!`);
       } else {
-        setError(data.error || "Failed to save job");
+        setError(data.error || `Failed to ${editJobData ? "update" : "save"} job`);
       }
     } catch (err) {
-      setError("Failed to save job to project");
+      setError(`Failed to ${editJobData ? "update" : "save"} job`);
     } finally {
       setSavingJob(false);
     }
@@ -297,8 +318,25 @@ const JobCalculator = () => {
   return (
     <div className="job-calculator">
       <div className="calculator-header">
-        <h2>🏗️ Job Calculator</h2>
+        <h2>🏗️ Job Calculator {editJobData && "(Edit Mode)"}</h2>
         <p>Calculate materials and requirements for landscaping jobs</p>
+        {editJobData && (
+          <button
+            className="cancel-edit-btn"
+            onClick={clearEditJobData}
+            style={{
+              background: "#dc3545",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "4px",
+              cursor: "pointer",
+              marginTop: "0.5rem",
+            }}
+          >
+            ❌ Cancel Edit
+          </button>
+        )}
       </div>
 
       <div className="calculator-content">
@@ -382,7 +420,7 @@ const JobCalculator = () => {
                 onClick={saveJobToProject}
                 disabled={savingJob || !selectedProject || !jobName}
               >
-                {savingJob ? "Saving..." : "💾 Save Job to Project"}
+                {savingJob ? "Saving..." : editJobData ? "💾 Update Job" : "💾 Save Job to Project"}
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ track goals, and manage conversation state for the landscaper application.
 
 import json
 import os
+import requests
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from pathlib import Path
@@ -24,12 +25,41 @@ class ContextManagerClient:
         self.context_file = self.project_root / "contexts" / f"{self.project_name}_context_cache.json"
         self.status_file = self.project_root / "contexts" / f"{self.project_name}_CONTEXT_STATUS.md"
         
+        # MCP server configuration
+        self.mcp_server_url = "http://localhost:8000"
+        self.use_mcp_server = self._check_mcp_server_available()
+        
         # Ensure contexts directory exists
         self.context_file.parent.mkdir(exist_ok=True)
         
         # Initialize context if it doesn't exist
         if not self.context_file.exists():
             self._initialize_context()
+    
+    def _check_mcp_server_available(self) -> bool:
+        """Check if MCP server is available."""
+        # Check for Docker MCP server first
+        try:
+            import subprocess
+            result = subprocess.run(['docker', 'ps', '--filter', 'name=mcp-context', '--format', '{{.Names}}'], 
+                                  capture_output=True, text=True, timeout=2)
+            if result.returncode == 0 and result.stdout.strip():
+                logger.info("Docker MCP context server detected")
+                return True
+        except:
+            pass
+        
+        # Check for HTTP server
+        try:
+            response = requests.get(f"{self.mcp_server_url}/health", timeout=2)
+            if response.status_code == 200:
+                logger.info("HTTP MCP server detected")
+                return True
+        except:
+            pass
+            
+        logger.warning("No MCP server available, falling back to file-based context management")
+        return False
     
     def _initialize_context(self):
         """Initialize the context file with default values."""
@@ -92,8 +122,23 @@ class ContextManagerClient:
         self._create_status_file(initial_context)
     
     def _save_context(self, context: Dict[str, Any]):
-        """Save context to JSON file."""
+        """Save context to JSON file or MCP server."""
         try:
+            if self.use_mcp_server:
+                # Try to save via MCP server first
+                try:
+                    response = requests.post(
+                        f"{self.mcp_server_url}/api/context/save",
+                        json={"project_name": self.project_name, "context": context},
+                        timeout=5
+                    )
+                    if response.status_code == 200:
+                        logger.info(f"Context saved via MCP server for {self.project_name}")
+                        return
+                except Exception as e:
+                    logger.warning(f"MCP server save failed, falling back to file: {e}")
+            
+            # Fallback to file-based storage
             with open(self.context_file, 'w') as f:
                 json.dump(context, f, indent=2)
             logger.info(f"Context saved to {self.context_file}")
@@ -101,8 +146,25 @@ class ContextManagerClient:
             logger.error(f"Failed to save context: {e}")
     
     def _load_context(self) -> Dict[str, Any]:
-        """Load context from JSON file."""
+        """Load context from JSON file or MCP server."""
         try:
+            if self.use_mcp_server:
+                # Try to load via MCP server first
+                try:
+                    response = requests.get(
+                        f"{self.mcp_server_url}/api/context/load",
+                        params={"project_name": self.project_name},
+                        timeout=5
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get("success"):
+                            logger.info(f"Context loaded via MCP server for {self.project_name}")
+                            return data.get("context", {})
+                except Exception as e:
+                    logger.warning(f"MCP server load failed, falling back to file: {e}")
+            
+            # Fallback to file-based storage
             with open(self.context_file, 'r') as f:
                 return json.load(f)
         except Exception as e:

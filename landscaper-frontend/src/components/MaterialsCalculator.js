@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 const MaterialsCalculator = () => {
   const [formData, setFormData] = useState({
@@ -26,12 +26,6 @@ const MaterialsCalculator = () => {
   const [materialTypes, setMaterialTypes] = useState([]);
   const [loadingMaterialTypes, setLoadingMaterialTypes] = useState(false);
 
-  useEffect(() => {
-    // Fetch existing projects and material types when component mounts
-    fetchExistingProjects();
-    fetchMaterialTypes();
-  }, []);
-
   const fetchExistingProjects = async () => {
     try {
       const response = await fetch("/api/projects");
@@ -44,19 +38,19 @@ const MaterialsCalculator = () => {
     }
   };
 
-  const fetchMaterialTypes = async () => {
+  const fetchMaterialTypes = useCallback(async () => {
     try {
       setLoadingMaterialTypes(true);
       const response = await fetch("/api/materials/types");
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setMaterialTypes(data.material_types);
+          setMaterialTypes(data.types);
           // Set the first material type as default if none is selected
-          if (data.material_types.length > 0 && !formData.material_type) {
+          if (data.types.length > 0 && !formData.material_type) {
             setFormData((prev) => ({
               ...prev,
-              material_type: data.material_types[0].value,
+              material_type: data.types[0],
             }));
           }
         }
@@ -66,7 +60,13 @@ const MaterialsCalculator = () => {
     } finally {
       setLoadingMaterialTypes(false);
     }
-  };
+  }, [formData.material_type]);
+
+  useEffect(() => {
+    // Fetch existing projects and material types when component mounts
+    fetchExistingProjects();
+    fetchMaterialTypes();
+  }, [fetchMaterialTypes]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -691,8 +691,8 @@ const MaterialsCalculator = () => {
                 <option value="">Loading material types...</option>
               ) : materialTypes.length > 0 ? (
                 materialTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
+                  <option key={type} value={type}>
+                    {type}
                   </option>
                 ))
               ) : (

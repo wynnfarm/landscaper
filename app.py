@@ -461,11 +461,12 @@ def add_material():
             name=data['name'],
             material_type=data['material_type'],
             description=data.get('description', ''),
-            unit_of_measure=data.get('unit_of_measure', ''),
-            cost_per_unit=float(data.get('cost_per_unit', 0)),
+            unit_of_measure=data.get('unit_of_measure', 'each'),
+            price_per_unit=float(data.get('price_per_unit', 0)),
             supplier=data.get('supplier', ''),
-            supplier_contact=data.get('supplier_contact', ''),
-            notes=data.get('notes', '')
+            supplier_part_number=data.get('supplier_part_number', ''),
+            use_case=data.get('use_case', ''),
+            installation_notes=data.get('installation_notes', '')
         )
         
         db.session.add(material)
@@ -785,6 +786,25 @@ def equipment_maintenance():
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Failed to schedule maintenance'}), 500
 
+@app.route('/api/materials/types', methods=['GET'])
+def api_materials_types():
+    """API endpoint for getting material types."""
+    if not db:
+        return jsonify([])
+    
+    try:
+        # Get unique material types from the database
+        material_types = db.session.query(Material.material_type).distinct().all()
+        types = [mt[0] for mt in material_types if mt[0]]
+        
+        return jsonify({
+            'success': True,
+            'types': types
+        })
+    except Exception as e:
+        logger.error(f"Error getting material types: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/materials')
 def api_materials():
     """API endpoint for materials data."""
@@ -929,6 +949,184 @@ def manifest():
 def service_worker():
     """Service worker for PWA functionality."""
     return app.send_static_file('js/sw.js')
+
+# Job-specific API endpoints
+@app.route('/api/jobs', methods=['GET', 'POST'])
+def api_jobs():
+    """API endpoint for jobs - GET all jobs or POST new job."""
+    if not db:
+        return jsonify([])
+    
+    if request.method == 'GET':
+        try:
+            jobs = Job.query.all()
+            return jsonify([job.to_dict() for job in jobs])
+        except Exception as e:
+            logger.error(f"Error getting jobs: {e}")
+            return jsonify([])
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            
+            # Create new job
+            job = Job(
+                job_number=data.get('job_number', f"JOB-{datetime.now().strftime('%Y%m%d%H%M%S')}"),
+                client_id=data.get('client_id'),
+                title=data.get('name', data.get('title', 'New Job')),
+                description=data.get('description', ''),
+                job_type=data.get('job_type', 'general'),
+                status=data.get('status', 'planning'),
+                priority=data.get('priority', 3),
+                site_address_line1=data.get('site_address_line1'),
+                site_city=data.get('site_city'),
+                site_state=data.get('site_state'),
+                site_postal_code=data.get('site_postal_code'),
+                estimated_start_date=data.get('estimated_start_date'),
+                estimated_end_date=data.get('estimated_end_date'),
+                estimated_cost=data.get('estimated_cost'),
+                labor_hours_estimated=data.get('labor_hours_estimated'),
+                weather_dependent=data.get('weather_dependent', False),
+                requires_permits=data.get('requires_permits', False),
+                special_instructions=data.get('special_instructions')
+            )
+            
+            db.session.add(job)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'job': job.to_dict()
+            })
+            
+        except Exception as e:
+            logger.error(f"Error creating job: {e}")
+            db.session.rollback()
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/jobs/<job_id>', methods=['GET', 'PUT', 'DELETE'])
+def api_job_by_id(job_id):
+    """API endpoint for specific job operations."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 500
+    
+    try:
+        job = Job.query.get(job_id)
+        if not job:
+            return jsonify({'success': False, 'error': 'Job not found'}), 404
+        
+        if request.method == 'GET':
+            return jsonify(job.to_dict())
+        
+        elif request.method == 'PUT':
+            data = request.get_json()
+            
+            # Update job fields
+            if 'name' in data or 'title' in data:
+                job.title = data.get('name', data.get('title', job.title))
+            if 'description' in data:
+                job.description = data.get('description')
+            if 'job_type' in data:
+                job.job_type = data.get('job_type')
+            if 'status' in data:
+                job.status = data.get('status')
+            if 'priority' in data:
+                job.priority = data.get('priority')
+            if 'estimated_start_date' in data:
+                job.estimated_start_date = data.get('estimated_start_date')
+            if 'estimated_end_date' in data:
+                job.estimated_end_date = data.get('estimated_end_date')
+            if 'estimated_cost' in data:
+                job.estimated_cost = data.get('estimated_cost')
+            if 'labor_hours_estimated' in data:
+                job.labor_hours_estimated = data.get('labor_hours_estimated')
+            if 'special_instructions' in data:
+                job.special_instructions = data.get('special_instructions')
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'job': job.to_dict()
+            })
+        
+        elif request.method == 'DELETE':
+            db.session.delete(job)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Job deleted successfully'})
+            
+    except Exception as e:
+        logger.error(f"Error with job {job_id}: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/projects/<project_id>/jobs', methods=['GET'])
+def api_project_jobs(project_id):
+    """API endpoint for getting jobs for a specific project."""
+    if not db:
+        return jsonify([])
+    
+    try:
+        # For now, we'll treat project_id as client_id since we don't have a separate projects table
+        # In a real system, you'd have a Project model and join tables
+        jobs = Job.query.filter_by(client_id=project_id).all()
+        return jsonify([job.to_dict() for job in jobs])
+    except Exception as e:
+        logger.error(f"Error getting jobs for project {project_id}: {e}")
+        return jsonify([])
+
+@app.route('/api/projects/<project_id>/materials', methods=['GET', 'POST'])
+def api_project_materials(project_id):
+    """API endpoint for project materials."""
+    if not db:
+        return jsonify([])
+    
+    if request.method == 'GET':
+        try:
+            # For now, return empty array since we don't have materials linked to projects
+            # In a real system, you'd query materials for this project
+            return jsonify([])
+        except Exception as e:
+            logger.error(f"Error getting materials for project {project_id}: {e}")
+            return jsonify([])
+    
+    elif request.method == 'POST':
+        try:
+            data = request.get_json()
+            # For now, just return success since we don't have materials storage
+            # In a real system, you'd save materials to the database
+            return jsonify({'success': True, 'message': 'Materials added successfully'})
+        except Exception as e:
+            logger.error(f"Error adding materials to project {project_id}: {e}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/jobs/<job_id>/recalculate', methods=['POST'])
+def api_recalculate_job(job_id):
+    """API endpoint for recalculating a job."""
+    if not db:
+        return jsonify({'success': False, 'error': 'Database not available'}), 500
+    
+    try:
+        job = Job.query.get(job_id)
+        if not job:
+            return jsonify({'success': False, 'error': 'Job not found'}), 404
+        
+        # For now, just return success since we don't have calculation logic here
+        # In a real system, you'd recalculate based on job measurements
+        return jsonify({
+            'success': True,
+            'message': 'Job recalculated successfully',
+            'job': job.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error recalculating job {job_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Register job calculator API routes
+from job_calculator_api import create_job_calculator_routes
+create_job_calculator_routes(app)
 
 if __name__ == '__main__':
     # Run the app

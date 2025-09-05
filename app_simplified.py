@@ -55,48 +55,6 @@ materials_data = [
     }
 ]
 
-equipment_data = [
-    {
-        "id": "1",
-        "name": "Skid Steer",
-        "equipment_type": "heavy_equipment",
-        "description": "Bobcat skid steer loader",
-        "status": "available",
-        "daily_rate": 250.00,
-        "is_active": True
-    },
-    {
-        "id": "2",
-        "name": "Plate Compactor",
-        "equipment_type": "compaction",
-        "description": "Vibratory plate compactor",
-        "status": "available", 
-        "daily_rate": 75.00,
-        "is_active": True
-    }
-]
-
-crew_data = [
-    {
-        "id": "1",
-        "name": "John Smith",
-        "role": "foreman",
-        "phone": "555-0101",
-        "email": "john@landscaper.com",
-        "hourly_rate": 25.00,
-        "is_active": True
-    },
-    {
-        "id": "2",
-        "name": "Mike Johnson",
-        "role": "laborer",
-        "phone": "555-0102", 
-        "email": "mike@landscaper.com",
-        "hourly_rate": 18.00,
-        "is_active": True
-    }
-]
-
 projects_data = [
     {
         "id": "1",
@@ -362,7 +320,7 @@ def calculate_patio(dimensions, material_type):
         pavers_needed = area_sqft * 1.1  # 10% waste factor
         base_material = volume_cubic_yards * 1.2  # 20% compaction factor
     elif material_type == 'concrete':
-        concrete_needed = volume_cubic_yards * 1.1  # 10% waste factor
+        pavers_needed = volume_cubic_yards * 1.1  # 10% waste factor
         base_material = volume_cubic_yards * 0.5  # 50% of concrete volume
     else:
         pavers_needed = area_sqft
@@ -382,24 +340,6 @@ def calculate_patio(dimensions, material_type):
             }
         }
     })
-
-@app.route('/api/equipment')
-def get_equipment():
-    """Get all equipment."""
-    try:
-        return jsonify([e for e in equipment_data if e['is_active']])
-    except Exception as e:
-        logger.error(f"Error fetching equipment: {e}")
-        return jsonify({'error': 'Failed to fetch equipment'}), 500
-
-@app.route('/api/crew')
-def get_crew():
-    """Get all crew members."""
-    try:
-        return jsonify([c for c in crew_data if c['is_active']])
-    except Exception as e:
-        logger.error(f"Error fetching crew: {e}")
-        return jsonify({'error': 'Failed to fetch crew'}), 500
 
 @app.route('/api/projects')
 def get_projects():

@@ -16,7 +16,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:ui": "node tests/run-ui-tests.js",
+    "test:ui:headless": "HEADLESS=true node tests/run-ui-tests.js",
+    "test:ui:targeted": "node tests/targeted-ui-tests.js",
+    "test:ui:targeted:headless": "HEADLESS=true node tests/targeted-ui-tests.js"
   },
   "eslintConfig": {
     "extends": [
@@ -36,5 +40,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5001"
+  "proxy": "http://localhost:5001",
+  "devDependencies": {
+    "puppeteer": "^24.19.0"
+  }
 }

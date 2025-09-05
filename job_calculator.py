@@ -9,6 +9,15 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 import json
 
+def safe_float(value, default=0.0):
+    """Safely convert a value to float, handling empty strings and invalid values"""
+    if value is None or value == '':
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 class JobCalculator:
     """Main job calculator class"""
     
@@ -38,11 +47,11 @@ class PaverCalculator:
     def calculate(self, measurements: Dict) -> Dict:
         """Calculate paver installation requirements"""
         
-        # Extract measurements
-        length_ft = measurements.get('length_ft', 0)
-        length_in = measurements.get('length_in', 0)
-        width_ft = measurements.get('width_ft', 0)
-        width_in = measurements.get('width_in', 0)
+        # Extract measurements with type conversion
+        length_ft = safe_float(measurements.get('length_ft'), 0)
+        length_in = safe_float(measurements.get('length_in'), 0)
+        width_ft = safe_float(measurements.get('width_ft'), 0)
+        width_in = safe_float(measurements.get('width_in'), 0)
         
         # Convert to total inches
         total_length_in = (length_ft * 12) + length_in
@@ -52,9 +61,9 @@ class PaverCalculator:
         area_sqft = (total_length_in * total_width_in) / 144
         
         # Layer calculations based on Excel patterns
-        paver_height = measurements.get('paver_height', 2.375)  # inches
-        fines_depth = measurements.get('fines_depth', 2.375)     # inches
-        ca11_depth = measurements.get('ca11_depth', 3.625)       # inches
+        paver_height = safe_float(measurements.get('paver_height'), 2.375)  # inches
+        fines_depth = safe_float(measurements.get('fines_depth'), 2.375)     # inches
+        ca11_depth = safe_float(measurements.get('ca11_depth'), 3.625)       # inches
         
         # Calculate total depth
         total_depth = paver_height + fines_depth + ca11_depth
@@ -104,13 +113,13 @@ class WallCalculator:
     def calculate(self, measurements: Dict) -> Dict:
         """Calculate wall construction requirements"""
         
-        # Extract measurements
-        length_ft = measurements.get('length_ft', 0)
-        length_in = measurements.get('length_in', 0)
-        height_ft = measurements.get('height_ft', 0)
-        height_in = measurements.get('height_in', 0)
-        width_ft = measurements.get('width_ft', 0)
-        width_in = measurements.get('width_in', 0)
+        # Extract measurements with type conversion
+        length_ft = safe_float(measurements.get('length_ft'), 0)
+        length_in = safe_float(measurements.get('length_in'), 0)
+        height_ft = safe_float(measurements.get('height_ft'), 0)
+        height_in = safe_float(measurements.get('height_in'), 0)
+        width_ft = safe_float(measurements.get('width_ft'), 0)
+        width_in = safe_float(measurements.get('width_in'), 0)
         
         # Convert to total inches
         total_length_in = (length_ft * 12) + length_in
@@ -126,7 +135,7 @@ class WallCalculator:
         surface_area_sqft = (total_length_in * total_height_in) / 144
         
         # Material calculations
-        blocks_needed = surface_area_sqft * measurements.get('blocks_per_sqft', 1.125)
+        blocks_needed = surface_area_sqft * safe_float(measurements.get('blocks_per_sqft'), 1.125)
         mortar_needed = volume_cubic_feet * 0.1  # 10% of volume for mortar
         
         return {
@@ -167,18 +176,18 @@ class StairCalculator:
     def calculate(self, measurements: Dict) -> Dict:
         """Calculate stair construction requirements"""
         
-        # Extract measurements
-        total_rise_ft = measurements.get('total_rise_ft', 0)
-        total_rise_in = measurements.get('total_rise_in', 0)
-        total_run_ft = measurements.get('total_run_ft', 0)
-        total_run_in = measurements.get('total_run_in', 0)
+        # Extract measurements with type conversion
+        total_rise_ft = safe_float(measurements.get('total_rise_ft'), 0)
+        total_rise_in = safe_float(measurements.get('total_rise_in'), 0)
+        total_run_ft = safe_float(measurements.get('total_run_ft'), 0)
+        total_run_in = safe_float(measurements.get('total_run_in'), 0)
         
         # Convert to total inches
         total_rise_inches = (total_rise_ft * 12) + total_rise_in
         total_run_inches = (total_run_ft * 12) + total_run_in
         
         # Calculate number of steps
-        step_count = measurements.get('step_count', 0)
+        step_count = safe_float(measurements.get('step_count'), 0)
         if step_count == 0:
             # Calculate optimal step count
             step_count = round(total_rise_inches / 7)  # 7 inches per step is standard
@@ -188,8 +197,8 @@ class StairCalculator:
         run_per_step = total_run_inches / step_count
         
         # Material calculations
-        tread_area_sqft = (run_per_step * measurements.get('tread_width', 36)) / 144
-        riser_area_sqft = (rise_per_step * measurements.get('tread_width', 36)) / 144
+        tread_area_sqft = (run_per_step * safe_float(measurements.get('tread_width'), 36)) / 144
+        riser_area_sqft = (rise_per_step * safe_float(measurements.get('tread_width'), 36)) / 144
         
         total_tread_area = tread_area_sqft * step_count
         total_riser_area = riser_area_sqft * step_count
@@ -237,13 +246,13 @@ class StepCalculator:
     def calculate(self, measurements: Dict) -> Dict:
         """Calculate individual step requirements"""
         
-        # Extract measurements
-        rise_ft = measurements.get('rise_ft', 0)
-        rise_in = measurements.get('rise_in', 0)
-        run_ft = measurements.get('run_ft', 0)
-        run_in = measurements.get('run_in', 0)
-        width_ft = measurements.get('width_ft', 0)
-        width_in = measurements.get('width_in', 0)
+        # Extract measurements with type conversion
+        rise_ft = safe_float(measurements.get('rise_ft'), 0)
+        rise_in = safe_float(measurements.get('rise_in'), 0)
+        run_ft = safe_float(measurements.get('run_ft'), 0)
+        run_in = safe_float(measurements.get('run_in'), 0)
+        width_ft = safe_float(measurements.get('width_ft'), 0)
+        width_in = safe_float(measurements.get('width_in'), 0)
         
         # Convert to total inches
         total_rise_inches = (rise_ft * 12) + rise_in

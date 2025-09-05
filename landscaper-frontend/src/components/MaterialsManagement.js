@@ -46,7 +46,7 @@ const MaterialsManagement = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setMaterialTypes(data.material_types);
+          setMaterialTypes(data.types);
         }
       }
     } catch (error) {
@@ -354,8 +354,8 @@ const MaterialsManagement = () => {
                     <option value="">Loading material types...</option>
                   ) : materialTypes.length > 0 ? (
                     materialTypes.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
+                      <option key={type} value={type}>
+                        {type}
                       </option>
                     ))
                   ) : (
