@@ -45,9 +45,9 @@ const MaterialsCalculator = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setMaterialTypes(data.types);
+          setMaterialTypes(data.types || []);
           // Set the first material type as default if none is selected
-          if (data.types.length > 0 && !formData.material_type) {
+          if (data.types && data.types.length > 0 && !formData.material_type) {
             setFormData((prev) => ({
               ...prev,
               material_type: data.types[0],
@@ -57,6 +57,7 @@ const MaterialsCalculator = () => {
       }
     } catch (error) {
       console.error("Error fetching material types:", error);
+      setMaterialTypes([]); // Ensure materialTypes is always an array
     } finally {
       setLoadingMaterialTypes(false);
     }
@@ -689,7 +690,7 @@ const MaterialsCalculator = () => {
             >
               {loadingMaterialTypes ? (
                 <option value="">Loading material types...</option>
-              ) : materialTypes.length > 0 ? (
+              ) : materialTypes && materialTypes.length > 0 ? (
                 materialTypes.map((type) => (
                   <option key={type} value={type}>
                     {type}
