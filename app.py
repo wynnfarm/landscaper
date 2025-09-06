@@ -1124,9 +1124,247 @@ def api_recalculate_job(job_id):
         logger.error(f"Error recalculating job {job_id}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Register job calculator API routes
-from job_calculator_api import create_job_calculator_routes
-create_job_calculator_routes(app)
+# Job Calculator API endpoints
+@app.route('/api/job-calculator/types', methods=['GET'])
+def get_job_types():
+    """Get available job types"""
+    try:
+        from job_calculator import JobCalculator
+        job_calculator = JobCalculator()
+        job_types = job_calculator.get_job_types()
+        return jsonify({
+            'success': True,
+            'types': job_types,
+            'descriptions': {
+                'pavers': 'Paver installation with base layers',
+                'walls': 'Wall construction with blocks and mortar',
+                'stairs': 'Stair construction with treads and risers',
+                'steps': 'Individual step installation'
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting job types: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/job-calculator/calculate', methods=['POST'])
+def calculate_job():
+    """Calculate job requirements"""
+    try:
+        from job_calculator import JobCalculator
+        job_calculator = JobCalculator()
+        
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        job_type = data.get('job_type')
+        measurements = data.get('measurements', {})
+        
+        if not job_type:
+            return jsonify({'success': False, 'error': 'Job type required'}), 400
+        
+        # Calculate the job
+        result = job_calculator.calculate_job(job_type, measurements)
+        
+        # Add metadata
+        result['metadata'] = {
+            'calculation_date': datetime.now().isoformat(),
+            'job_type': job_type,
+            'input_measurements': measurements
+        }
+        
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+        
+    except ValueError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Error calculating job: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/job-calculator/templates', methods=['GET'])
+def get_job_templates():
+    """Get job calculation templates"""
+    templates = {
+        'pavers': {
+            'name': 'Paver Installation',
+            'description': 'Calculate materials needed for paver installation',
+            'measurements': {
+                'length_ft': {'type': 'number', 'label': 'Length (feet)', 'required': True},
+                'length_in': {'type': 'number', 'label': 'Length (inches)', 'required': False},
+                'width_ft': {'type': 'number', 'label': 'Width (feet)', 'required': True},
+                'width_in': {'type': 'number', 'label': 'Width (inches)', 'required': False},
+                'paver_height': {'type': 'number', 'label': 'Paver Height (inches)', 'default': 2.375},
+                'fines_depth': {'type': 'number', 'label': 'Fines Depth (inches)', 'default': 2.375},
+                'ca11_depth': {'type': 'number', 'label': 'CA11 Base Depth (inches)', 'default': 3.625}
+            }
+        },
+        'walls': {
+            'name': 'Wall Construction',
+            'description': 'Calculate materials needed for wall construction',
+            'measurements': {
+                'length_ft': {'type': 'number', 'label': 'Length (feet)', 'required': True},
+                'length_in': {'type': 'number', 'label': 'Length (inches)', 'required': False},
+                'height_ft': {'type': 'number', 'label': 'Height (feet)', 'required': True},
+                'height_in': {'type': 'number', 'label': 'Height (inches)', 'required': False},
+                'width_ft': {'type': 'number', 'label': 'Width (feet)', 'required': False},
+                'width_in': {'type': 'number', 'label': 'Width (inches)', 'required': False},
+                'block_type': {'type': 'select', 'label': 'Block Type', 'options': ['Standard Concrete Block', 'Decorative Block', 'Retaining Wall Block']}
+            }
+        },
+        'stairs': {
+            'name': 'Stair Construction',
+            'description': 'Calculate materials needed for stair construction',
+            'measurements': {
+                'total_rise_ft': {'type': 'number', 'label': 'Total Rise (feet)', 'required': True},
+                'total_rise_in': {'type': 'number', 'label': 'Total Rise (inches)', 'required': False},
+                'total_run_ft': {'type': 'number', 'label': 'Total Run (feet)', 'required': True},
+                'total_run_in': {'type': 'number', 'label': 'Total Run (inches)', 'required': False},
+                'step_count': {'type': 'number', 'label': 'Number of Steps (optional)', 'required': False},
+                'tread_width': {'type': 'number', 'label': 'Tread Width (inches)', 'default': 36}
+            }
+        },
+        'steps': {
+            'name': 'Step Installation',
+            'description': 'Calculate materials needed for individual step',
+            'measurements': {
+                'rise_ft': {'type': 'number', 'label': 'Rise (feet)', 'required': True},
+                'rise_in': {'type': 'number', 'label': 'Rise (inches)', 'required': False},
+                'run_ft': {'type': 'number', 'label': 'Run (feet)', 'required': True},
+                'run_in': {'type': 'number', 'label': 'Run (inches)', 'required': False},
+                'width_ft': {'type': 'number', 'label': 'Width (feet)', 'required': True},
+                'width_in': {'type': 'number', 'label': 'Width (inches)', 'required': False},
+                'tread_material': {'type': 'select', 'label': 'Tread Material', 'options': ['Stone', 'Concrete', 'Brick']},
+                'riser_material': {'type': 'select', 'label': 'Riser Material', 'options': ['Stone', 'Concrete', 'Brick']}
+            }
+        }
+    }
+    
+    return jsonify({
+        'success': True,
+        'templates': templates
+    })
+
+# Materials calculation endpoint
+@app.route('/api/materials/calculate', methods=['POST'])
+def calculate_materials():
+    """Calculate materials needed for a project."""
+    try:
+        data = request.get_json()
+        
+        # Extract calculation parameters
+        project_type = data.get('project_type', 'retaining_wall')
+        material_type = data.get('material_type', 'concrete')
+        
+        # Handle both old format (dimensions object) and new format (direct dimensions)
+        if 'dimensions' in data:
+            dimensions = data.get('dimensions', {})
+        else:
+            # New format: dimensions are directly in the data
+            dimensions = {
+                'length': data.get('length', 0),
+                'width': data.get('width', 0),
+                'height': data.get('height', 0),
+                'depth': data.get('depth', 0)
+            }
+        
+        # Calculate based on project type
+        if project_type == 'retaining_wall':
+            return calculate_retaining_wall(dimensions, material_type)
+        elif project_type == 'patio':
+            return calculate_patio(dimensions, material_type)
+        else:
+            return jsonify({'error': 'Unknown project type'}), 400
+            
+    except Exception as e:
+        logger.error(f"Error calculating materials: {e}")
+        return jsonify({'error': 'Failed to calculate materials'}), 500
+
+def calculate_retaining_wall(dimensions, material_type):
+    """Calculate materials for retaining wall."""
+    length = dimensions.get('length', 0)
+    height = dimensions.get('height', 0)
+    width = dimensions.get('width', 0)
+    
+    # Calculate volume
+    volume_cubic_feet = length * height * width
+    volume_cubic_yards = volume_cubic_feet / 27
+    
+    # Calculate surface area
+    surface_area = length * height
+    
+    # Material calculations based on type
+    if material_type == 'concrete':
+        blocks_needed = surface_area * 1.125  # 1.125 blocks per sqft
+        mortar_needed = surface_area * 0.05  # 0.05 cubic yards per sqft
+        gravel_needed = volume_cubic_yards * 0.5  # 50% gravel for base
+        
+        return jsonify({
+            'success': True,
+            'materials': {
+                'concrete_blocks': {
+                    'quantity': round(blocks_needed),
+                    'unit': 'blocks',
+                    'description': 'Concrete retaining wall blocks'
+                },
+                'mortar': {
+                    'quantity': round(mortar_needed, 2),
+                    'unit': 'cubic yards',
+                    'description': 'Mortar for block installation'
+                },
+                'gravel_base': {
+                    'quantity': round(gravel_needed, 2),
+                    'unit': 'cubic yards',
+                    'description': 'Gravel for base layer'
+                }
+            },
+            'calculations': {
+                'surface_area_sqft': round(surface_area, 2),
+                'volume_cubic_yards': round(volume_cubic_yards, 2)
+            }
+        })
+    else:
+        return jsonify({'error': 'Unsupported material type for retaining wall'}), 400
+
+def calculate_patio(dimensions, material_type):
+    """Calculate materials for patio."""
+    length = dimensions.get('length', 0)
+    width = dimensions.get('width', 0)
+    depth = dimensions.get('depth', 0)
+    
+    # Calculate area and volume
+    area_sqft = length * width
+    volume_cubic_feet = area_sqft * depth
+    volume_cubic_yards = volume_cubic_feet / 27
+    
+    if material_type == 'concrete':
+        concrete_needed = volume_cubic_yards
+        gravel_needed = volume_cubic_yards * 0.5  # 50% gravel for base
+        
+        return jsonify({
+            'success': True,
+            'materials': {
+                'concrete': {
+                    'quantity': round(concrete_needed, 2),
+                    'unit': 'cubic yards',
+                    'description': 'Ready-mix concrete'
+                },
+                'gravel_base': {
+                    'quantity': round(gravel_needed, 2),
+                    'unit': 'cubic yards',
+                    'description': 'Gravel for base layer'
+                }
+            },
+            'calculations': {
+                'area_sqft': round(area_sqft, 2),
+                'volume_cubic_yards': round(volume_cubic_yards, 2)
+            }
+        })
+    else:
+        return jsonify({'error': 'Unsupported material type for patio'}), 400
 
 if __name__ == '__main__':
     # Run the app
